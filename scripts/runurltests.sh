@@ -11,7 +11,7 @@ CONCURRENCY=${2:-40}
 REPORT_DIR=${3:-.}
 SLEEP_TIME=${4:-5}
 HOST=${5:localhost}
-HTTPDPORT=${5:80}
+HTTPDPORT=${6:80}
 
 SCRIPT_DIR=`dirname "${0}"`
 
