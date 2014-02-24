@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Server port="8005" shutdown="SHUTDOWN">
+  <Listener className="org.apache.catalina.core.AprLifecycleListener" SSLEngine="off"/>
+  <Listener className="org.apache.catalina.core.JasperListener"/>
+  <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener"/>
+  <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener"/>
+  <Listener className="org.apache.catalina.storeconfig.StoreConfigLifecycleListener"/>
+  <Listener className="org.apache.catalina.mbeans.ServerLifecycleListener"/>
+  <Listener className="org.jboss.modcluster.container.catalina.standalone.ModClusterListener" advertise="true"/>
+  <GlobalNamingResources>
+    <Resource
+      auth="Container"
+      description="User database that can be updated and saved"
+      name="UserDatabase"
+      type="org.apache.catalina.UserDatabase"
+      pathname="conf/tomcat-users.xml"
+      factory="org.apache.catalina.users.MemoryUserDatabaseFactory"
+      readonly="false"/>
+  </GlobalNamingResources>
+  <Service
+      name="Catalina">
+    <Connector
+        maxSavePostSize="100000"
+        port="8080"
+        proxyName="localhost"
+        proxyPort="8000"
+        redirectPort="8443"
+        acceptCount="2000"
+        maxThreads="2000"
+        maxKeepAliveRequests="-1"
+        connectionTimeout="20000">
+    </Connector>
+    <Connector
+        maxSavePostSize="100000"
+        port="8001"
+        redirectPort="8443"
+        protocol="org.apache.coyote.http11.Http11Protocol">
+    </Connector>
+    <Connector
+        maxSavePostSize="100000"
+        port="8002"
+        redirectPort="8443"
+        protocol="org.apache.coyote.http11.Http11AprProtocol">
+    </Connector>
+    <Connector
+        maxSavePostSize="100000"
+        port="8003"
+        redirectPort="8443"
+        useSendfile="false"
+        protocol="org.apache.coyote.http11.Http11AprProtocol">
+    </Connector>
+    <Connector
+        maxSavePostSize="100000"
+        port="8004"
+        redirectPort="8443"
+        protocol="org.apache.coyote.http11.Http11NioProtocol">
+    </Connector>
+    <Connector
+        maxSavePostSize="100000"
+        port="8006"
+        redirectPort="8443"
+        useSendfile="false"
+        protocol="org.apache.coyote.http11.Http11NioProtocol">
+    </Connector>
+    <Engine
+        defaultHost="localhost"
+        name="Catalina" jvmRoute="NEO">
+      <Realm className="org.apache.catalina.realm.UserDatabaseRealm"/>
+      <Host
+          name="localhost">
+      </Host>
+    </Engine>
+  </Service>
+</Server>
