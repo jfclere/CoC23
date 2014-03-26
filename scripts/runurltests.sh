@@ -10,8 +10,8 @@ TIME_LIMIT=${1:-30}
 CONCURRENCY=${2:-40}
 REPORT_DIR=${3:-.}
 SLEEP_TIME=${4:-5}
-HOST=${5:localhost}
-HTTPDPORT=${6:80}
+HOST=${5:-localhost}
+HTTPDPORT=${6:-80}
 
 SCRIPT_DIR=`dirname "${0}"`
 
@@ -34,11 +34,12 @@ function quit {
 
 trap "quit" INT TERM EXIT
 
-vmstat -n 5 > "${REPORT_DIR}/vmstat.log" &
+ssh 172.16.10.9 vmstat -n 5 > "${REPORT_DIR}/vmstat.log" &
 VMSTAT_PID=$!
 
 if [ ! "${SKIP_HTTP_TESTS}" ] ; then
   # httpd
+  echo "Running test on http://${HOST}:${HTTPDPORT}/"
   "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:${HTTPDPORT}/ >/dev/null
   sleep ${SLEEP_TIME}
   "${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:${HTTPDPORT}/ | tee "${REPORT_DIR}/results_httpd.txt" 2>&1
