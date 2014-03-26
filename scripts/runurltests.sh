@@ -70,5 +70,14 @@ sleep ${SLEEP_TIME}
 sleep ${SLEEP_TIME}
 "${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:8006/ | tee "${REPORT_DIR}/results_coyote_nio_ns.txt" 2>&1
 
-quit
+# Coyote NIO2
+"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:8007/ >/dev/null
+sleep ${SLEEP_TIME}
+"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:8007/ | tee "${REPORT_DIR}/results_coyote_nio_ns.txt" 2>&1
 
+# Coyote NIO2 w/o sendfile
+"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:8008/ >/dev/null
+sleep ${SLEEP_TIME}
+"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:8008/ | tee "${REPORT_DIR}/results_coyote_nio_ns.txt" 2>&1
+
+quit
