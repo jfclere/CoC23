@@ -4,9 +4,7 @@
   <Listener className="org.apache.catalina.core.JasperListener"/>
   <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener"/>
   <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener"/>
-  <Listener className="org.apache.catalina.storeconfig.StoreConfigLifecycleListener"/>
   <Listener className="org.apache.catalina.mbeans.ServerLifecycleListener"/>
-  <Listener className="org.jboss.modcluster.container.catalina.standalone.ModClusterListener" advertise="true"/>
   <GlobalNamingResources>
     <Resource
       auth="Container"
@@ -19,17 +17,6 @@
   </GlobalNamingResources>
   <Service
       name="Catalina">
-    <Connector
-        maxSavePostSize="100000"
-        port="8080"
-        proxyName="localhost"
-        proxyPort="8000"
-        redirectPort="8443"
-        acceptCount="2000"
-        maxThreads="2000"
-        maxKeepAliveRequests="-1"
-        connectionTimeout="20000">
-    </Connector>
     <Connector
         maxSavePostSize="100000"
         port="8001"
