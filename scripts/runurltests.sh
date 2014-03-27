@@ -19,7 +19,7 @@ function stop_vmstat {
   if [ -n "${VMSTAT_PID}" ] ; then
     echo 'Stopping vmstat'
 
-    kill -HUP ${VMSTAT_PID}
+    kill -15 ${VMSTAT_PID}
 
     unset VMSTAT_PID
   fi
@@ -73,11 +73,11 @@ sleep ${SLEEP_TIME}
 # Coyote NIO2
 "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:8007/ >/dev/null
 sleep ${SLEEP_TIME}
-"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:8007/ | tee "${REPORT_DIR}/results_coyote_nio_ns.txt" 2>&1
+"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:8007/ | tee "${REPORT_DIR}/results_coyote_nio2.txt" 2>&1
 
 # Coyote NIO2 w/o sendfile
-"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:8008/ >/dev/null
+#"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:8008/ >/dev/null
 sleep ${SLEEP_TIME}
-"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:8008/ | tee "${REPORT_DIR}/results_coyote_nio_ns.txt" 2>&1
+"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:8008/ | tee "${REPORT_DIR}/results_coyote_nio2_ns.txt" 2>&1
 
 quit
