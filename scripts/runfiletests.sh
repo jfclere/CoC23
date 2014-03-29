@@ -2,6 +2,7 @@
 #
 # Runs the tests for all files against a particular base URL
 #
+NUMBER_AB=4
 
 AB=/usr/sbin/ab
 AB_OPTS="-r"
@@ -25,6 +26,35 @@ for f in ${FILES} ; do
   echo `date`
   echo Fetching ${BASE_URL}${f} -c ${CONCURRENCY} ${TIME_LIMIT} -n ${REQUESTS}
 
-  echo ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${CONCURRENCY} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f}
-  ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${CONCURRENCY} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f}
+  concur=`expr ${CONCURRENCY} / ${NUMBER_AB} `
+  if [ ${concur} -eq 0 ]; then
+    concur=1
+  fi
+
+  started=0
+  while [ ${started} -lt ${CONCURRENCY} ]
+  do
+    started=`expr ${started} + ${concur} `
+    echo ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${CONCURRENCY} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f}
+    ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${CONCURRENCY} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f} > $$.ab.${started} &
+  done
+
+  # Wait for ab
+  while true
+  do
+    sleep 1
+    finished=true
+    for file in `ls $$.ab.*`
+    do
+      grep "Transfer rate:" $file 2>&1 > /dev/null
+      if [ $? -ne 0 ]; then
+         finished=false
+         break
+      fi
+    done
+    if $finished; then
+      cat $$.ab.*
+      break
+    fi
+  done
 done
