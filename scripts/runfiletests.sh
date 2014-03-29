@@ -24,7 +24,6 @@ fi
 
 for f in ${FILES} ; do
   echo `date`
-  echo Fetching ${BASE_URL}${f} -c ${CONCURRENCY} ${TIME_LIMIT} -n ${REQUESTS}
 
   concur=`expr ${CONCURRENCY} / ${NUMBER_AB} `
   if [ ${concur} -eq 0 ]; then
@@ -36,7 +35,8 @@ for f in ${FILES} ; do
   do
     started=`expr ${started} + ${concur} `
     echo ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${CONCURRENCY} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f}
-    ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${CONCURRENCY} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f} > $$.ab.${started} &
+    echo Fetching ${BASE_URL}${f} -c ${CONCURRENCY} ${TIME_LIMIT} -n ${REQUESTS} > $$.ab.${started}
+    ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${CONCURRENCY} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f} >> $$.ab.${started} &
   done
 
   # Wait for ab
