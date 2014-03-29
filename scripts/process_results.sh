@@ -13,7 +13,9 @@ do
 
   file=""
   for results in ${dir}/results_*.txt ; do
-    "${BASEDIR}/parsereport.pl" < "$results" > $results.tmp
+    "${BASEDIR}/parsereport.pl" < "$results" > $results.tmp1
+     awk -f ${BASEDIR}/sum.awk $results.tmp1 > $results.tmp
+     rm $results.tmp1
      file=$results.tmp
   done
 
