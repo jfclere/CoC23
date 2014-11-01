@@ -7,18 +7,19 @@ To create the files used for the test: in script
 mkdatafiles.sh
 
 To run the tests: in scripts.
-bash runalltests.sh /tmp/reports 300 5 localhost 8000
+bash runalltests.sh /tmp/reports 300 5 localhost 8098 8009
 where
 /tmp/reports is the directory to create the reports.
 300 is the timeout for ab
 5 is the time between the tests.
 localhost is the hostname of the box to test = where tomcat is running.
-8000 is the port of httpd (we are comparing to httpd).
+8098 is the port of httpd (we are comparing to httpd).
+8099 is the SSL port of httpd.
 
 To analyse the results: (requires perl)
 gather_results.sh filename.txt /tmp/reports
 where
-filename.txt is the output text file with the results.
+filename.txt is the output text file with the results. Where the ouput is written...
 /tmp/reports is the directory where the reports are created.
 
 output format:
