@@ -3,6 +3,7 @@
 # Runs the tests for all files against a particular base URL
 #
 NUMBER_AB=4
+HOSTSLIST="messaging-01 messaging-02 messaging-04 messaging-05"
 
 AB=/usr/sbin/ab
 AB_OPTS="-r"
@@ -31,12 +32,14 @@ for f in ${FILES} ; do
   fi
 
   started=0
-  while [ ${started} -lt ${CONCURRENCY} ]
+  #while [ ${started} -lt ${CONCURRENCY} ]
+  for remote in `echo "$HOSTSLIST"`
   do
+    echo $remote
     started=`expr ${started} + ${concur} `
     echo ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f}
     echo Fetching ${BASE_URL}${f} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} > $$.ab.${started}
-    ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f} >> $$.ab.${started} &
+    ssh $remote ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f} >> $$.ab.${started} &
   done
 
   # Wait for ab

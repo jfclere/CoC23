@@ -11,7 +11,9 @@ CONCURRENCY=${2:-40}
 REPORT_DIR=${3:-.}
 SLEEP_TIME=${4:-5}
 HOST=${5:-localhost}
-HTTPDPORT=${6:-80}
+HTTPDPORT=${6:-8089}
+HTTPDSPORT=${7:-8099}
+HTTPD_ONLY=true
 
 SCRIPT_DIR=`dirname "${0}"`
 
@@ -43,6 +45,18 @@ if [ ! "${SKIP_HTTP_TESTS}" ] ; then
   "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:${HTTPDPORT}/ >/dev/null
   sleep ${SLEEP_TIME}
   "${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:${HTTPDPORT}/ | tee "${REPORT_DIR}/results_httpd.txt" 2>&1
+fi
+if [ ! "${SKIP_HTTPS_TESTS}" ] ; then
+  # httpd
+  echo "Running test on https://${HOST}:${HTTPDPORT}/"
+  "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 https://${HOST}:${HTTPDSPORT}/ >/dev/null
+  sleep ${SLEEP_TIME}
+  "${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} https://${HOST}:${HTTPDSPORT}/ | tee "${REPORT_DIR}/results_httpd_ssl.txt" 2>&1
+fi
+if ${HTTPD_ONLY}; then
+  echo "Done httpd/httpds only proxy"
+  quit
+  exit
 fi
 
 # Coyote non-APR
