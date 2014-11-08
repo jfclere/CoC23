@@ -62,7 +62,7 @@ fi
 # Proxy AJP
 "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:${HTTPDPORT}/tcaj/ >/dev/null
 sleep ${SLEEP_TIME}
-"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:${HTTPDPORT}/tcaj | tee "${REPORT_DIR}/results_proxy_ajp.txt" 2>&1
+"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:${HTTPDPORT}/tcaj/ | tee "${REPORT_DIR}/results_proxy_ajp.txt" 2>&1
 
 # Proxy HTTP
 "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:${HTTPDPORT}/tchp/ >/dev/null
@@ -77,7 +77,7 @@ sleep ${SLEEP_TIME}
 # Proxy AJP SSL tests.
 "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 https://${HOST}:${HTTPDSPORT}/tcaj/ >/dev/null
 sleep ${SLEEP_TIME}
-"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} https://${HOST}:${HTTPDSPORT}/tcaj | tee "${REPORT_DIR}/results_ssl_proxy_ajp.txt" 2>&1
+"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} https://${HOST}:${HTTPDSPORT}/tcaj/ | tee "${REPORT_DIR}/results_ssl_proxy_ajp.txt" 2>&1
 
 # Proxy HTTP
 "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 https://${HOST}:${HTTPDSPORT}/tchp/ >/dev/null
