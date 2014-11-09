@@ -6,7 +6,7 @@ NUMBER_AB=4
 HOSTSLIST="messaging-01 messaging-02 messaging-04 messaging-05"
 
 AB=/usr/sbin/ab
-AB_OPTS="-r"
+AB_OPTS="-r -H 'Host: localhost'"
 REQUESTS=${1:-1000}
 CONCURRENCY=${2:-1}
 TIME_LIMIT=${3:-0}

@@ -14,6 +14,7 @@ HOST=${5:-localhost}
 HTTPDPORT=${6:-8089}
 HTTPDSPORT=${7:-8099}
 HTTPD_ONLY=false
+SKIP_HTTP_TESTS=true
 
 SCRIPT_DIR=`dirname "${0}"`
 
@@ -58,6 +59,16 @@ if ${HTTPD_ONLY}; then
   quit
   exit
 fi
+
+# WildFly AJP
+"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:8180/tcaj/ >/dev/null
+sleep ${SLEEP_TIME}
+"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:8180/tcaj/ | tee "${REPORT_DIR}/results_widfly_ajp.txt" 2>&1
+
+# SSL WildFly AJP
+"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 https://${HOST}:8543/tcaj/ >/dev/null
+sleep ${SLEEP_TIME}
+"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} https://${HOST}:8180/tcaj/ | tee "${REPORT_DIR}/results_ssl_widfly_ajp.txt" 2>&1
 
 # Proxy AJP
 "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:${HTTPDPORT}/tcaj/ >/dev/null
