@@ -4,6 +4,7 @@
 #
 NUMBER_AB=4
 HOSTSLIST="messaging-01 messaging-02 messaging-04 messaging-05"
+HOST=messaging-09
 
 AB=/usr/sbin/ab
 AB_OPTS="-r -H 'Host: localhost'"
@@ -11,7 +12,30 @@ REQUESTS=${1:-1000}
 CONCURRENCY=${2:-1}
 TIME_LIMIT=${3:-0}
 BASE_URL=${4:-http://localhost/}
-FILES="4KiB.bin 8KiB.bin 16KiB.bin 32KiB.bin 64KiB.bin 128KiB.bin 256KiB.bin 512KiB.bin 1MiB.bin 2MiB.bin 4MiB.bin 8MiB.bin 16MiB.bin 32MiB.bin"
+#FILES="4KiB.bin 8KiB.bin 16KiB.bin 32KiB.bin 64KiB.bin 128KiB.bin 256KiB.bin 512KiB.bin 1MiB.bin 2MiB.bin 4MiB.bin 8MiB.bin 16MiB.bin 32MiB.bin"
+FILES="4KiB.bin 16KiB.bin 64KiB.bin 128KiB.bin 512KiB.bin 2MiB.bin 8MiB.bin 32MiB.bin"
+
+function stop_vmstat {
+  if [ -n "${VMSTAT_PID}" ] ; then
+    echo 'Stopping vmstat'
+
+    kill -15 ${VMSTAT_PID}
+
+    unset VMSTAT_PID
+  fi
+}
+function start_vmstat {
+  ssh ${HOST} vmstat -n 5 > "${REPORT_DIR}/${REPORT_FILE}.${FILES}.log" &
+  VMSTAT_PID=$!
+}
+
+function quit {
+  echo
+  stop_vmstat
+  exit
+}
+
+trap "quit" INT TERM EXIT
 
 if [ -x /usr/bin/ab ]; then
   AB=/usr/bin/ab
@@ -32,6 +56,7 @@ for f in ${FILES} ; do
   fi
 
   started=0
+  start_vmstat
   #while [ ${started} -lt ${CONCURRENCY} ]
   for remote in `echo "$HOSTSLIST"`
   do
@@ -56,6 +81,7 @@ for f in ${FILES} ; do
       fi
     done
     if $finished; then
+      stop_vmstat
       cat $$.ab.*
       break
     fi
