@@ -27,9 +27,6 @@ function quit {
 
 trap "quit" INT TERM EXIT
 
-ssh ${HOST} vmstat -n 5 > "${REPORT_DIR}/vmstat.log" &
-VMSTAT_PID=$!
-
 if [ ! "${SKIP_HTTP_TESTS}" ] ; then
   # httpd
   REPORT_FILE=results_httpd

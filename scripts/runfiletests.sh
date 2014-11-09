@@ -25,7 +25,7 @@ function stop_vmstat {
   fi
 }
 function start_vmstat {
-  ssh ${HOST} vmstat -n 5 > "${REPORT_DIR}/${REPORT_FILE}.${FILES}.log" &
+  ssh ${HOST} vmstat -n 5 > "${REPORT_DIR}/${REPORT_FILE}.${f}.log" &
   VMSTAT_PID=$!
 }
 
