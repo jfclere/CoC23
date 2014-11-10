@@ -30,3 +30,16 @@
         useSendfile="false"
         protocol="org.apache.coyote.http11.Http11NioProtocol">
     </Connector>
+    <Connector
+        maxSavePostSize="100000"
+        port="8007"
+        redirectPort="8443"
+        protocol="org.apache.coyote.http11.Http11Nio2Protocol">
+    </Connector>
+    <Connector
+        maxSavePostSize="100000"
+        port="8008"
+        redirectPort="8443"
+        useSendfile="false"
+        protocol="org.apache.coyote.http11.Http11Nio2Protocol">
+    </Connector>
