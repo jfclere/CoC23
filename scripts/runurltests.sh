@@ -68,25 +68,25 @@ sleep ${SLEEP_TIME}
 "${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:8003/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
 
 # Coyote NIO
-REPORT_FILE=results_coyote_apr_nio
+REPORT_FILE=results_coyote_nio
 "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:8004/ >/dev/null
 sleep ${SLEEP_TIME}
 "${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:8004/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
 
 # Coyote NIO w/o sendfile
-REPORT_FILE=results_coyote_apr_nio_ns
+REPORT_FILE=results_coyote_nio_ns
 "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:8006/ >/dev/null
 sleep ${SLEEP_TIME}
 "${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:8006/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
 
 # Coyote NIO2
-REPORT_FILE=results_coyote_apr_nio2
+REPORT_FILE=results_coyote_nio2
 "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:8007/ >/dev/null
 sleep ${SLEEP_TIME}
 "${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:8007/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
 
 # Coyote NIO2 w/o sendfile
-REPORT_FILE=results_coyote_apr_nio2_ns
+REPORT_FILE=results_coyote_nio2_ns
 "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:8008/ >/dev/null
 sleep ${SLEEP_TIME}
 "${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:8008/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
