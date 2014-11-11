@@ -14,7 +14,8 @@ HOST=${5:-localhost}
 HTTPDPORT=${6:-8089}
 HTTPDSPORT=${7:-8099}
 HTTPD_ONLY=false
-SKIP_HTTP_TESTS=true
+SKIP_HTTP_TESTS=false
+SKIP_HTTPS_TESTS=false
 REPORT_FILE="results_httpd.txt"
 
 SCRIPT_DIR=`dirname "${0}"`
@@ -30,7 +31,9 @@ function quit {
 
 trap "quit" INT TERM EXIT
 
-if [ ! "${SKIP_HTTP_TESTS}" ] ; then
+if ${SKIP_HTTP_TESTS}; then
+  echo "skip httpd tests"
+else
   # httpd
   REPORT_FILE=results_httpd
   echo "Running test on http://${HOST}:${HTTPDPORT}/"
@@ -38,7 +41,9 @@ if [ ! "${SKIP_HTTP_TESTS}" ] ; then
   sleep ${SLEEP_TIME}
   "${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:${HTTPDPORT}/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
 fi
-if [ ! "${SKIP_HTTPS_TESTS}" ] ; then
+if ${SKIP_HTTPS_TESTS}; then
+  echo "skip ssl httpd tests"
+else
   # httpd
   REPORT_FILE=results_httpd_ssl
   echo "Running test on https://${HOST}:${HTTPDPORT}/"
@@ -62,7 +67,7 @@ sleep ${SLEEP_TIME}
 REPORT_FILE=results_ssl_widfly_ajp
 "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 https://${HOST}:8543/tcaj/ >/dev/null
 sleep ${SLEEP_TIME}
-"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} https://${HOST}:8180/tcaj/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
+"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} https://${HOST}:8543/tcaj/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
 
 # Proxy AJP
 REPORT_FILE=results_proxy_ajp
