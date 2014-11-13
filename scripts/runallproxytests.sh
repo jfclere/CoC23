@@ -13,7 +13,8 @@ HTTPDPORT=${5:-80}
 LENGTH_ESTIMATE=`expr 14 '*' 6 '*' '(' "${TIME_LIMIT}" + "${SLEEP_TIME}" ')' / 60`
 echo "Expect this test to last ${LENGTH_ESTIMATE} minutes."
 
-for c in 1 40 80 160 250 ; do
+#for c in 1 40 80 160 250 ; do
+for c in 1 40 80 ; do
  echo Making directory "${REPORT_BASE_DIR}/c${c}"
  echo Testing "${HOST}" "${HTTPDPORT}"
  mkdir -p "${REPORT_BASE_DIR}/c${c}"
