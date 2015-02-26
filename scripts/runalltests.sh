@@ -9,6 +9,7 @@ TIME_LIMIT=${2:-300}
 SLEEP_TIME=${3:-5}
 HOST=${4:-localhost}
 HTTPDPORT=${5:-80}
+HTTPDSPORT=${5:-443}
 
 LENGTH_ESTIMATE=`expr 14 '*' 6 '*' '(' "${TIME_LIMIT}" + "${SLEEP_TIME}" ')' / 60`
 echo "Expect this test to last ${LENGTH_ESTIMATE} minutes."
@@ -18,6 +19,6 @@ for c in 1 40 80 ; do
  echo Making directory "${REPORT_BASE_DIR}/c${c}"
  echo Testing "${HOST}" "${HTTPDPORT}"
  mkdir -p "${REPORT_BASE_DIR}/c${c}"
- "${SCRIPT_DIR}/runurltests.sh" "${TIME_LIMIT}" ${c} "${REPORT_BASE_DIR}/c${c}" "${SLEEP_TIME}" "${HOST}" "${HTTPDPORT}"
+ "${SCRIPT_DIR}/runurltests.sh" "${TIME_LIMIT}" ${c} "${REPORT_BASE_DIR}/c${c}" "${SLEEP_TIME}" "${HOST}" "${HTTPDPORT}" "${HTTPDSPORT}"
 done
 

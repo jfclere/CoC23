@@ -7,7 +7,7 @@ HOSTSLIST="messaging-01 messaging-02 messaging-04 messaging-05"
 HOST=messaging-09
 
 AB=/usr/sbin/ab
-AB_OPTS="-r -H 'Host: localhost'"
+AB_OPTS="-r -H 'Host: localhost' -Z 'AES128-GCM-SHA256'"
 REQUESTS=${1:-1000}
 CONCURRENCY=${2:-1}
 TIME_LIMIT=${3:-0}
