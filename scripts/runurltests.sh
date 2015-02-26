@@ -38,7 +38,7 @@ fi
 if [ ! "${SKIP_HTTPS_TESTS}" ] ; then
   # httpd
   REPORT_FILE=results_httpd_ssl
-  echo "Running test on https://${HOST}:${HTTPDPORT}/"
+  echo "Running test on https://${HOST}:${HTTPDSPORT}/"
   "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 https://${HOST}:${HTTPDSPORT}/ >/dev/null
   sleep ${SLEEP_TIME}
   "${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} https://${HOST}:${HTTPDSPORT}/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
