@@ -9,7 +9,7 @@ TIME_LIMIT=${2:-300}
 SLEEP_TIME=${3:-5}
 HOST=${4:-localhost}
 HTTPDPORT=${5:-80}
-HTTPDSPORT=${5:-443}
+HTTPDSPORT=${6:-443}
 
 LENGTH_ESTIMATE=`expr 14 '*' 6 '*' '(' "${TIME_LIMIT}" + "${SLEEP_TIME}" ')' / 60`
 echo "Expect this test to last ${LENGTH_ESTIMATE} minutes."
