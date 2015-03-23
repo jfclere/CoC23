@@ -6,7 +6,7 @@ NUMBER_AB=4
 HOSTSLIST="messaging-01 messaging-02 messaging-04 messaging-05"
 HOST=messaging-09
 
-AB=/usr/sbin/ab
+AB=/home/jfclere/httpd-2.4.10/support/ab
 AB_OPTS="-r -H 'Host: localhost' -Z 'AES128-GCM-SHA256'"
 REQUESTS=${1:-1000}
 CONCURRENCY=${2:-1}
@@ -36,10 +36,6 @@ function quit {
 }
 
 trap "quit" INT TERM EXIT
-
-if [ -x /usr/bin/ab ]; then
-  AB=/usr/bin/ab
-fi
 
 if [ "$TIME_LIMIT" = "0" ] ; then
 TIME_LIMIT=""
