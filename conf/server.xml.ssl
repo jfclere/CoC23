@@ -60,9 +60,7 @@
         scheme="https"
         SSLEnabled="true"
         keyPass="changeit"
-        keystoreFile="https-keystores/server.keystore"
-        sslProtocol="SSLv3"
-        ciphers="SSL_RSA_WITH_RC4_128_SHA"
+        keystoreFile="/home/jfclere/.keystore"
         redirectPort="8443"
         protocol="org.apache.coyote.http11.Http11Protocol">
     </Connector>
@@ -71,10 +69,8 @@
         port="8002"
         scheme="https"
         SSLEnabled="true"
-        SSLCertificateFile="https-keystores/newcert.pem"
-        SSLCertificateKeyFile="https-keystores/newkey.pem"
-        SSLPassword="123456"
-        SSLCipherSuite="RC4-SHA"
+        SSLCertificateFile="/home/jfclere/server.crt"
+        SSLCertificateKeyFile="/home/jfclere/server.key"
         redirectPort="8443"
         protocol="org.apache.coyote.http11.Http11AprProtocol">
     </Connector>
@@ -83,10 +79,8 @@
         port="8003"
         scheme="https"
         SSLEnabled="true"
-        SSLCertificateFile="https-keystores/newcert.pem"
-        SSLCertificateKeyFile="https-keystores/newkey.pem"
-        SSLPassword="123456"
-        SSLCipherSuite="RC4-SHA"
+        SSLCertificateFile="home/jfclere/server.crt"
+        SSLCertificateKeyFile="/home/jfclere/server.key"
         redirectPort="8443"
         useSendfile="false"
         protocol="org.apache.coyote.http11.Http11AprProtocol">
@@ -97,9 +91,7 @@
         scheme="https"
         SSLEnabled="true"
         keyPass="changeit"
-        keystoreFile="https-keystores/server.keystore"
-        ciphers="SSL_RSA_WITH_RC4_128_SHA"
-        sslProtocol="SSLv3"
+        keystoreFile="/home/jfclere/.keystore"
         redirectPort="8443"
         protocol="org.apache.coyote.http11.Http11NioProtocol">
     </Connector>
@@ -109,9 +101,7 @@
         scheme="https"
         SSLEnabled="true"
         keyPass="changeit"
-        keystoreFile="https-keystores/server.keystore"
-        ciphers="SSL_RSA_WITH_RC4_128_SHA"
-        sslProtocol="SSLv3"
+        keystoreFile="/home/jfclere/.keystore"
         redirectPort="8443"
         protocol="org.apache.coyote.http11.Http11NioProtocol">
     </Connector>
@@ -121,9 +111,7 @@
         scheme="https"
         SSLEnabled="true"
         keyPass="changeit"
-        keystoreFile="https-keystores/server.keystore"
-        ciphers="SSL_RSA_WITH_RC4_128_SHA"
-        sslProtocol="SSLv3"
+        keystoreFile="/home/jfclere/.keystore"
         redirectPort="8443"
         protocol="org.apache.coyote.http11.Http11Nio2Protocol">
     </Connector>
@@ -133,9 +121,7 @@
         scheme="https"
         SSLEnabled="true"
         keyPass="changeit"
-        keystoreFile="https-keystores/server.keystore"
-        ciphers="SSL_RSA_WITH_RC4_128_SHA"
-        sslProtocol="SSLv3"
+        keystoreFile="/home/jfclere/.keystore"
         redirectPort="8443"
         useSendfile="false"
         protocol="org.apache.coyote.http11.Http11Nio2Protocol">
