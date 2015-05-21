@@ -3,7 +3,7 @@
 # Runs the tests for all files against a particular base URL
 #
 NUMBER_AB=4
-HOSTSLIST="messaging-01 messaging-02 messaging-04 messaging-05"
+HOSTSLIST="messaging-11 messaging-12 messaging-13 messaging-14"
 HOST=messaging-09
 
 AB=/home/jfclere/httpd-2.4.10/support/ab
