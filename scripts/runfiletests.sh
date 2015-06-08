@@ -3,8 +3,8 @@
 # Runs the tests for all files against a particular base URL
 #
 NUMBER_AB=4
-HOSTSLIST="messaging-11 messaging-12 messaging-13 messaging-14"
-HOST=messaging-09
+HOSTSLIST="messaging-16 messaging-17 messaging-18 messaging-20"
+HOST=messaging-23
 
 AB=/home/jfclere/httpd-2.4.10/support/ab
 AB_OPTS="-r -H 'Host: localhost' -Z 'AES128-GCM-SHA256'"

@@ -14,6 +14,7 @@ HOST=${5:-localhost}
 HTTPDPORT=${6:-8089}
 HTTPDSPORT=${7:-8099}
 HTTPD_ONLY=true
+HTTPSCHEME=https
 REPORT_FILE="results_httpd.txt"
 
 SCRIPT_DIR=`dirname "${0}"`
@@ -27,68 +28,76 @@ function quit {
 
 trap "quit" INT TERM EXIT
 
-if [ ! "${SKIP_HTTP_TESTS}" ] ; then
-  # httpd
-  REPORT_FILE=results_httpd
-  echo "Running test on http://${HOST}:${HTTPDPORT}/"
-  "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:${HTTPDPORT}/ >/dev/null
-  sleep ${SLEEP_TIME}
-  "${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:${HTTPDPORT}/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
-fi
-if [ ! "${SKIP_HTTPS_TESTS}" ] ; then
-  # httpd
-  REPORT_FILE=results_httpd_ssl
+# NOHTTPD if [ ! "${SKIP_HTTP_TESTS}" ] ; then
+# NOHTTPD   # httpd
+# NOHTTPD   REPORT_FILE=results_httpd
+# NOHTTPD   echo "Running test on http://${HOST}:${HTTPDPORT}/"
+# NOHTTPD   "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:${HTTPDPORT}/ >/dev/null
+# NOHTTPD   sleep ${SLEEP_TIME}
+# NOHTTPD   "${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:${HTTPDPORT}/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
+# NOHTTPD fi
+# NOHTTPD if [ ! "${SKIP_HTTPS_TESTS}" ] ; then
+  # httpd openssl mod_ssl
+  REPORT_FILE=results_httpd_https
   echo "Running test on https://${HOST}:${HTTPDSPORT}/"
   "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 https://${HOST}:${HTTPDSPORT}/ >/dev/null
   sleep ${SLEEP_TIME}
   "${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} https://${HOST}:${HTTPDSPORT}/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
-fi
-if ${HTTPD_ONLY}; then
-  echo "Done httpd/httpds only proxy"
-  quit
-  exit
-fi
+# NOHTTPD fi
+# NOHTTPD if ${HTTPD_ONLY}; then
+# NOHTTPD   echo "Done httpd/httpds only proxy"
+# NOHTTPD   quit
+# NOHTTPD   exit
+# NOHTTPD fi
+
+# STOP the tests here for the moment.
+quit
+
 
 # Coyote non-APR
-REPORT_FILE=results_coyote
-"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:8001/ >/dev/null
-sleep ${SLEEP_TIME}
-"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:8001/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
+#REPORT_FILE=results_coyote_$HTTPSCHEME
+#"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 $HTTPSCHEME://${HOST}:8001/ >/dev/null
+#sleep ${SLEEP_TIME}
+#"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} $HTTPSCHEME://${HOST}:8001/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
 
 # Coyote APR
-REPORT_FILE=results_coyote_apr
-"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:8002/ >/dev/null
+REPORT_FILE=results_coyote_apr_$HTTPSCHEME
+"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 $HTTPSCHEME://${HOST}:8002/ >/dev/null
 sleep ${SLEEP_TIME}
-"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:8002/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
+"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} $HTTPSCHEME://${HOST}:8002/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
 
 # Coyote APR w/o sendfile
-REPORT_FILE=results_coyote_apr_ns
-"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:8003/ >/dev/null
+REPORT_FILE=results_coyote_nio2_openssl_$HTTPSCHEME
+"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 $HTTPSCHEME://${HOST}:8003/ >/dev/null
 sleep ${SLEEP_TIME}
-"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:8003/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
-
-# Coyote NIO
-REPORT_FILE=results_coyote_nio
-"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:8004/ >/dev/null
-sleep ${SLEEP_TIME}
-"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:8004/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
-
-# Coyote NIO w/o sendfile
-REPORT_FILE=results_coyote_nio_ns
-"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:8006/ >/dev/null
-sleep ${SLEEP_TIME}
-"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:8006/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
+"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} $HTTPSCHEME://${HOST}:8003/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
 
 # Coyote NIO2
-REPORT_FILE=results_coyote_nio2
-"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:8007/ >/dev/null
+REPORT_FILE=results_coyote_nio2_$HTTPSCHEME
+"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 $HTTPSCHEME://${HOST}:8004/ >/dev/null
 sleep ${SLEEP_TIME}
-"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:8007/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
+"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} $HTTPSCHEME://${HOST}:8004/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
+
+# Coyote NIO w/o sendfile
+REPORT_FILE=results_coyote_nio_openssl_$HTTPSCHEME
+"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 $HTTPSCHEME://${HOST}:8006/ >/dev/null
+sleep ${SLEEP_TIME}
+"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} $HTTPSCHEME://${HOST}:8006/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
+
+# Coyote NIO2
+REPORT_FILE=results_coyote_nio_$HTTPSCHEME
+"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 $HTTPSCHEME://${HOST}:8007/ >/dev/null
+sleep ${SLEEP_TIME}
+"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} $HTTPSCHEME://${HOST}:8007/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
+
+# STOP the tests here for the moment.
+quit
+
 
 # Coyote NIO2 w/o sendfile
-REPORT_FILE=results_coyote_nio2_ns
-"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:8008/ >/dev/null
+REPORT_FILE=results_coyote_nio2_ns_$HTTPSCHEME
+"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 $HTTPSCHEME://${HOST}:8008/ >/dev/null
 sleep ${SLEEP_TIME}
-"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:8008/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
+"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} $HTTPSCHEME://${HOST}:8008/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
 
 quit
