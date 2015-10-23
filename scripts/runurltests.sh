@@ -38,11 +38,11 @@ trap "quit" INT TERM EXIT
 # NOHTTPD fi
 # NOHTTPD if [ ! "${SKIP_HTTPS_TESTS}" ] ; then
   # httpd openssl mod_ssl
-  REPORT_FILE=results_httpd_https
-  echo "Running test on https://${HOST}:${HTTPDSPORT}/"
-  "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 https://${HOST}:${HTTPDSPORT}/ >/dev/null
-  sleep ${SLEEP_TIME}
-  "${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} https://${HOST}:${HTTPDSPORT}/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
+#  REPORT_FILE=results_httpd_https
+#  echo "Running test on https://${HOST}:${HTTPDSPORT}/"
+#  "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 https://${HOST}:${HTTPDSPORT}/ >/dev/null
+#  sleep ${SLEEP_TIME}
+#  "${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} https://${HOST}:${HTTPDSPORT}/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
 # NOHTTPD fi
 # NOHTTPD if ${HTTPD_ONLY}; then
 # NOHTTPD   echo "Done httpd/httpds only proxy"
@@ -50,15 +50,11 @@ trap "quit" INT TERM EXIT
 # NOHTTPD   exit
 # NOHTTPD fi
 
-# STOP the tests here for the moment.
-quit
-
-
-# Coyote non-APR
-#REPORT_FILE=results_coyote_$HTTPSCHEME
-#"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 $HTTPSCHEME://${HOST}:8001/ >/dev/null
-#sleep ${SLEEP_TIME}
-#"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} $HTTPSCHEME://${HOST}:8001/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
+# Nio JSSE
+REPORT_FILE=results_coyote_nio_jsse_$HTTPSCHEME
+"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 $HTTPSCHEME://${HOST}:8001/ >/dev/null
+sleep ${SLEEP_TIME}
+"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} $HTTPSCHEME://${HOST}:8001/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
 
 # Coyote APR
 REPORT_FILE=results_coyote_apr_$HTTPSCHEME
@@ -66,11 +62,20 @@ REPORT_FILE=results_coyote_apr_$HTTPSCHEME
 sleep ${SLEEP_TIME}
 "${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} $HTTPSCHEME://${HOST}:8002/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
 
-# Coyote APR w/o sendfile
-REPORT_FILE=results_coyote_nio2_openssl_$HTTPSCHEME
+# Next connector
+REPORT_FILE=results_coyote_nio_openssl_$HTTPSCHEME
 "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 $HTTPSCHEME://${HOST}:8003/ >/dev/null
 sleep ${SLEEP_TIME}
 "${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} $HTTPSCHEME://${HOST}:8003/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
+
+# Next connector
+REPORT_FILE=results_coyote_nio2_openssl_$HTTPSCHEME
+"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 $HTTPSCHEME://${HOST}:8004/ >/dev/null
+sleep ${SLEEP_TIME}
+"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} $HTTPSCHEME://${HOST}:8004/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
+
+# STOP the tests here for the moment.
+quit
 
 # Coyote NIO2
 REPORT_FILE=results_coyote_nio2_$HTTPSCHEME

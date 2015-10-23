@@ -16,6 +16,7 @@ echo "Expect this test to last ${LENGTH_ESTIMATE} minutes."
 
 #for c in 1 40 80 160 250 ; do
 for c in 1 40 80 ; do
+#for c in 1 40 ; do
  echo Making directory "${REPORT_BASE_DIR}/c${c}"
  echo Testing "${HOST}" "${HTTPDPORT}"
  mkdir -p "${REPORT_BASE_DIR}/c${c}"
