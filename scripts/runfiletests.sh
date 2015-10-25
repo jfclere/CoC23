@@ -9,13 +9,14 @@ HOST=messaging-23
 AB=/home/jfclere/httpd-2.4.10/support/ab
 H2=/home/jfclere/NGHTTP2/bin/h2load
 AB_OPTS="-r -H 'Host: localhost' -Z 'AES128-GCM-SHA256'"
+#AB_OPTS="-r -H 'Host: localhost'"
 REQUESTS=${1:-1000}
 CONCURRENCY=${2:-1}
 TIME_LIMIT=${3:-0}
 BASE_URL=${4:-http://localhost/}
 USE_H2=${5:false}
-#FILES="4KiB.bin 8KiB.bin 16KiB.bin 32KiB.bin 64KiB.bin 128KiB.bin 256KiB.bin 512KiB.bin 1MiB.bin 2MiB.bin 4MiB.bin 8MiB.bin 16MiB.bin 32MiB.bin"
-FILES="4KiB.bin 16KiB.bin 64KiB.bin 128KiB.bin 512KiB.bin 2MiB.bin 8MiB.bin 32MiB.bin"
+FILES="4KiB.bin 8KiB.bin 16KiB.bin 32KiB.bin 64KiB.bin 128KiB.bin 256KiB.bin 512KiB.bin 1MiB.bin 2MiB.bin 4MiB.bin 8MiB.bin 16MiB.bin 32MiB.bin"
+#FILES="4KiB.bin 16KiB.bin 64KiB.bin 128KiB.bin 512KiB.bin 2MiB.bin 8MiB.bin 32MiB.bin"
 
 function stop_vmstat {
   if [ -n "${VMSTAT_PID}" ] ; then
@@ -49,6 +50,8 @@ for f in ${FILES} ; do
   echo `date`
 
   concur=`expr ${CONCURRENCY} / ${NUMBER_AB} `
+  # 2 ab per box (because ab is single processor logic
+  concur=`expr ${CONCURRENCY} / 2 `
   if [ ${concur} -eq 0 ]; then
     concur=1
   fi
@@ -58,17 +61,23 @@ for f in ${FILES} ; do
   #while [ ${started} -lt ${CONCURRENCY} ]
   for remote in `echo "$HOSTSLIST"`
   do
-    echo $remote
-    started=`expr ${started} + ${concur} `
-    if $USE_H2; then
-      echo ${H2} -c ${concur} -n ${REQUESTS} ${BASE_URL}${f}
-      echo Fetching ${BASE_URL}${f} -c ${concur} -n ${REQUESTS} > $$.ab.${started}
-      ssh $remote ${H2} -c ${concur} -n ${REQUESTS} ${BASE_URL}${f} >> $$.ab.${started} &
-    else
+    for box in 1 2
+    do
+      echo $remote.$box
+      started=`expr ${started} + ${concur} `
+      if $USE_H2; then
+        echo ${H2} -c ${concur} -n ${REQUESTS} ${BASE_URL}${f}
+        echo Fetching ${BASE_URL}${f} -c ${concur} -n ${REQUESTS} > $$.ab.${started}
+        ssh $remote ${H2} -c ${concur} -n ${REQUESTS} ${BASE_URL}${f} >> $$.ab.${started} &
+      else
+        echo ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f}
+        echo Fetching ${BASE_URL}${f} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} > $$.ab.${started}
+        ssh $remote ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f} >> $$.ab.${started} &
+      fi
       echo ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f}
       echo Fetching ${BASE_URL}${f} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} > $$.ab.${started}
       ssh $remote ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f} >> $$.ab.${started} &
-    fi
+    done
   done
 
   # Wait for ab
