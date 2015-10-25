@@ -7,11 +7,13 @@ HOSTSLIST="messaging-16 messaging-17 messaging-18 messaging-20"
 HOST=messaging-23
 
 AB=/home/jfclere/httpd-2.4.10/support/ab
+H2=/home/jfclere/NGHTTP2/bin/h2load
 AB_OPTS="-r -H 'Host: localhost' -Z 'AES128-GCM-SHA256'"
 REQUESTS=${1:-1000}
 CONCURRENCY=${2:-1}
 TIME_LIMIT=${3:-0}
 BASE_URL=${4:-http://localhost/}
+USE_H2=${5:false}
 #FILES="4KiB.bin 8KiB.bin 16KiB.bin 32KiB.bin 64KiB.bin 128KiB.bin 256KiB.bin 512KiB.bin 1MiB.bin 2MiB.bin 4MiB.bin 8MiB.bin 16MiB.bin 32MiB.bin"
 FILES="4KiB.bin 16KiB.bin 64KiB.bin 128KiB.bin 512KiB.bin 2MiB.bin 8MiB.bin 32MiB.bin"
 
@@ -58,9 +60,15 @@ for f in ${FILES} ; do
   do
     echo $remote
     started=`expr ${started} + ${concur} `
-    echo ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f}
-    echo Fetching ${BASE_URL}${f} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} > $$.ab.${started}
-    ssh $remote ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f} >> $$.ab.${started} &
+    if $USE_H2; then
+      echo ${H2} -c ${concur} -n ${REQUESTS} ${BASE_URL}${f}
+      echo Fetching ${BASE_URL}${f} -c ${concur} -n ${REQUESTS} > $$.ab.${started}
+      ssh $remote ${H2} -c ${concur} -n ${REQUESTS} ${BASE_URL}${f} >> $$.ab.${started} &
+    else
+      echo ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f}
+      echo Fetching ${BASE_URL}${f} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} > $$.ab.${started}
+      ssh $remote ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f} >> $$.ab.${started} &
+    fi
   done
 
   # Wait for ab
@@ -71,6 +79,11 @@ for f in ${FILES} ; do
     for file in `ls $$.ab.*`
     do
       grep "Transfer rate:" $file 2>&1 > /dev/null
+      if [ $? -ne 0 ]; then
+         finished=false
+         break
+      fi
+      grep "finished in " $file 2>&1 > /dev/null
       if [ $? -ne 0 ]; then
          finished=false
          break
