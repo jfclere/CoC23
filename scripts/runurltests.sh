@@ -50,6 +50,22 @@ trap "quit" INT TERM EXIT
 # NOHTTPD   exit
 # NOHTTPD fi
 
+# Test nio2 openssl h2
+REPORT_FILE=results_coyote_nio2_jsse_h2_$HTTPSCHEME
+"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 $HTTPSCHEME://${HOST}:8003/ true >/dev/null
+sleep ${SLEEP_TIME}
+"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} $HTTPSCHEME://${HOST}:8003/ true | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
+
+# Test nio2 openssl http/1.1
+REPORT_FILE=results_coyote_nio2_jsse_h1_$HTTPSCHEME
+"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 $HTTPSCHEME://${HOST}:8003/ false >/dev/null
+sleep ${SLEEP_TIME}
+"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} $HTTPSCHEME://${HOST}:8003/ false | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
+
+# STOP the tests here for the moment.
+quit
+
+
 # Nio JSSE
 REPORT_FILE=results_coyote_nio_jsse_$HTTPSCHEME
 "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 $HTTPSCHEME://${HOST}:8001/ >/dev/null

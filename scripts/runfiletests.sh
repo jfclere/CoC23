@@ -74,9 +74,6 @@ for f in ${FILES} ; do
         echo Fetching ${BASE_URL}${f} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} > $$.ab.${started}
         ssh $remote ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f} >> $$.ab.${started} &
       fi
-      echo ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f}
-      echo Fetching ${BASE_URL}${f} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} > $$.ab.${started}
-      ssh $remote ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f} >> $$.ab.${started} &
     done
   done
 
