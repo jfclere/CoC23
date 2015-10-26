@@ -84,15 +84,18 @@ for f in ${FILES} ; do
     finished=true
     for file in `ls $$.ab.*`
     do
+     if $USE_H2; then
       grep "Transfer rate:" $file 2>&1 > /dev/null
       if [ $? -ne 0 ]; then
          finished=false
          break
       fi
-      grep "finished in " $file 2>&1 > /dev/null
-      if [ $? -ne 0 ]; then
-         finished=false
-         break
+      else
+        grep "finished in " $file 2>&1 > /dev/null
+        if [ $? -ne 0 ]; then
+           finished=false
+           break
+        fi
       fi
     done
     if $finished; then
