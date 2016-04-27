@@ -3,11 +3,12 @@
 # Runs the tests for all files against a particular base URL
 #
 NUMBER_AB=4
-HOSTSLIST="messaging-16 messaging-17 messaging-18 messaging-20"
-HOST=messaging-23
+HOSTSLIST="perf30 perf31 perf32 perf33"
+HOST=perf29
 
 AB=/home/jfclere/httpd-2.4.10/support/ab
 H2=/home/jfclere/NGHTTP2/bin/h2load
+H2_OPTS="-H 'Host: localhost' --ciphers='AES128-GCM-SHA256'"
 AB_OPTS="-r -H 'Host: localhost' -Z 'AES128-GCM-SHA256'"
 #AB_OPTS="-r -H 'Host: localhost'"
 REQUESTS=${1:-1000}
@@ -66,9 +67,9 @@ for f in ${FILES} ; do
       echo $remote.$box
       started=`expr ${started} + ${concur} `
       if $USE_H2; then
-        echo ${H2} -c ${concur} -n ${REQUESTS} ${BASE_URL}${f}
+        echo ${H2} ${H2_OPTS} -c ${concur} -n ${REQUESTS} ${BASE_URL}${f}
         echo Fetching ${BASE_URL}${f} -c ${concur} -n ${REQUESTS} > $$.ab.${started}
-        ssh $remote ${H2} -c ${concur} -n ${REQUESTS} ${BASE_URL}${f} >> $$.ab.${started} &
+        ssh $remote ${H2} ${H2_OPTS} -c ${concur} -n ${REQUESTS} ${BASE_URL}${f} >> $$.ab.${started} &
       else
         echo ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f}
         echo Fetching ${BASE_URL}${f} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} > $$.ab.${started}
@@ -84,14 +85,14 @@ for f in ${FILES} ; do
     finished=true
     for file in `ls $$.ab.*`
     do
-     if $USE_H2; then
-      grep "Transfer rate:" $file 2>&1 > /dev/null
-      if [ $? -ne 0 ]; then
-         finished=false
-         break
-      fi
-      else
+      if $USE_H2; then
         grep "finished in " $file 2>&1 > /dev/null
+        if [ $? -ne 0 ]; then
+           finished=false
+           break
+        fi
+      else
+        grep "Transfer rate:" $file 2>&1 > /dev/null
         if [ $? -ne 0 ]; then
            finished=false
            break
