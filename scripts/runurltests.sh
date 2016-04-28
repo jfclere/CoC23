@@ -4,7 +4,8 @@
 #
 
 # Enough requests to fill 10 minutes?
-REQUESTS=10000000
+#REQUESTS=10000000
+REQUESTS=100000
 
 TIME_LIMIT=${1:-30}
 CONCURRENCY=${2:-40}
