@@ -8,9 +8,9 @@ HOST=perf29
 
 AB=/home/jfclere/httpd-2.4.10/support/ab
 H2=/home/jfclere/NGHTTP2/bin/h2load
-H2_OPTS="-H 'Host: localhost' --ciphers='AES128-GCM-SHA256'"
-AB_OPTS="-r -H 'Host: localhost' -Z 'AES128-GCM-SHA256'"
-#AB_OPTS="-r -H 'Host: localhost'"
+H2_OPTS="-H 'Host: localhost' --ciphers='DHE-RSA-AES128-GCM-SHA256'"
+AB_OPTS="-r -H 'Host: localhost' -Z 'DHE-RSA-AES128-GCM-SHA256'"
+#AB_OPTS="-r -H 'Host: localhost'" --ciphers='AES128-GCM-SHA256' -Z 'AES128-GCM-SHA256'
 REQUESTS=${1:-1000}
 CONCURRENCY=${2:-1}
 TIME_LIMIT=${3:-0}
