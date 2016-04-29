@@ -18,8 +18,9 @@ CONCURRENCY=${2:-1}
 TIME_LIMIT=${3:-0}
 BASE_URL=${4:-http://localhost/}
 USE_H2=${5:false}
-FILES="4KiB.bin 8KiB.bin 16KiB.bin 32KiB.bin 64KiB.bin 128KiB.bin 256KiB.bin 512KiB.bin 1MiB.bin 2MiB.bin 4MiB.bin 8MiB.bin 16MiB.bin 32MiB.bin"
+#FILES="4KiB.bin 8KiB.bin 16KiB.bin 32KiB.bin 64KiB.bin 128KiB.bin 256KiB.bin 512KiB.bin 1MiB.bin 2MiB.bin 4MiB.bin 8MiB.bin 16MiB.bin 32MiB.bin"
 #FILES="4KiB.bin 16KiB.bin 64KiB.bin 128KiB.bin 512KiB.bin 2MiB.bin 8MiB.bin 32MiB.bin"
+FILES="4KiB.bin 8KiB.bin 16KiB.bin 32KiB.bin 64KiB.bin 128KiB.bin 256KiB.bin 512KiB.bin 1MiB.bin 2MiB.bin"
 
 function stop_vmstat {
   if [ -n "${VMSTAT_PID}" ] ; then
