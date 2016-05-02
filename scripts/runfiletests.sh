@@ -20,7 +20,7 @@ BASE_URL=${4:-http://localhost/}
 USE_H2=${5:false}
 #FILES="4KiB.bin 8KiB.bin 16KiB.bin 32KiB.bin 64KiB.bin 128KiB.bin 256KiB.bin 512KiB.bin 1MiB.bin 2MiB.bin 4MiB.bin 8MiB.bin 16MiB.bin 32MiB.bin"
 #FILES="4KiB.bin 16KiB.bin 64KiB.bin 128KiB.bin 512KiB.bin 2MiB.bin 8MiB.bin 32MiB.bin"
-FILES="4KiB.bin 8KiB.bin 16KiB.bin 32KiB.bin 64KiB.bin 128KiB.bin 256KiB.bin 512KiB.bin 1MiB.bin 2MiB.bin"
+FILES="4KiB.bin 8KiB.bin 16KiB.bin 32KiB.bin 64KiB.bin 128KiB.bin 256KiB.bin 512KiB.bin 1MiB.bin"
 
 function stop_vmstat {
   if [ -n "${VMSTAT_PID}" ] ; then
@@ -65,18 +65,22 @@ for f in ${FILES} ; do
   #while [ ${started} -lt ${CONCURRENCY} ]
   for remote in `echo "$HOSTSLIST"`
   do
-    for box in 1 2
+    #for box in 1 2 we need 2 ab but only one h2_load
+    for box in 1
     do
       echo $remote.$box
       started=`expr ${started} + ${concur} `
       if $USE_H2; then
         echo ${H2} ${H2_OPTS} -c ${concur} -n ${REQUESTS} ${BASE_URL}${f}
-        echo Fetching ${BASE_URL}${f} -c ${concur} -n ${REQUESTS} > $$.ab.${started}
+        echo Fetching ${BASE_URL}${f} -c ${concur} -n ${REQUESTS} on $remote > $$.ab.${started}
         ssh $remote ${H2} ${H2_OPTS} -c ${concur} -n ${REQUESTS} ${BASE_URL}${f} >> $$.ab.${started} &
       else
-        echo ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f}
-        echo Fetching ${BASE_URL}${f} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} > $$.ab.${started}
-        ssh $remote ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f} >> $$.ab.${started} &
+        #echo ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f}
+        #echo Fetching ${BASE_URL}${f} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} > $$.ab.${started}
+        #ssh $remote ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f} >> $$.ab.${started} &
+        echo ${H2} --h1 ${H2_OPTS} -c ${concur} -n ${REQUESTS} ${BASE_URL}${f}
+        echo Fetching ${BASE_URL}${f} -c ${concur} -n ${REQUESTS} on $remote > $$.ab.${started}
+        ssh $remote ${H2} --h1 ${H2_OPTS} -c ${concur} -n ${REQUESTS} ${BASE_URL}${f} >> $$.ab.${started} &
       fi
     done
   done
@@ -88,19 +92,19 @@ for f in ${FILES} ; do
     finished=true
     for file in `ls $$.ab.*`
     do
-      if $USE_H2; then
+      #if $USE_H2; then
         grep "finished in " $file 2>&1 > /dev/null
         if [ $? -ne 0 ]; then
            finished=false
            break
         fi
-      else
-        grep "Transfer rate:" $file 2>&1 > /dev/null
-        if [ $? -ne 0 ]; then
-           finished=false
-           break
-        fi
-      fi
+      #else
+      #  grep "Transfer rate:" $file 2>&1 > /dev/null
+      #  if [ $? -ne 0 ]; then
+      #     finished=false
+      #     break
+      #  fi
+      #fi
     done
     if $finished; then
       stop_vmstat
