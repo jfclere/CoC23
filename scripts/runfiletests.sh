@@ -5,7 +5,8 @@
 NUMBER_AB=4
 #HOSTSLIST="perf30 perf31 perf32 perf33"
 #HOST=perf29
-HOSTSLIST="messaging-02 messaging-01 messaging-04 messaging-05"
+#HOSTSLIST="messaging-02 messaging-01 messaging-04 messaging-05"
+HOSTSLIST="messaging-02 messaging-01 messaging-04"
 HOST=messaging-07
 
 AB=/home/jfclere/httpd-2.4.10/support/ab
@@ -49,6 +50,11 @@ TIME_LIMIT=""
 else
 TIME_LIMIT="-t $TIME_LIMIT"
 fi
+if $USE_H2; then
+  echo "Testing H2"
+else
+  H2_OPTS="--h1 $H2_OPTS"
+fi
 
 for f in ${FILES} ; do
   echo `date`
@@ -78,9 +84,9 @@ for f in ${FILES} ; do
         #echo ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f}
         #echo Fetching ${BASE_URL}${f} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} > $$.ab.${started}
         #ssh $remote ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f} >> $$.ab.${started} &
-        echo ${H2} --h1 ${H2_OPTS} -c ${concur} -n ${REQUESTS} ${BASE_URL}${f}
+        echo ${H2} ${H2_OPTS} -c ${concur} -n ${REQUESTS} ${BASE_URL}${f}
         echo Fetching ${BASE_URL}${f} -c ${concur} -n ${REQUESTS} on $remote > $$.ab.${started}
-        ssh $remote ${H2} --h1 ${H2_OPTS} -c ${concur} -n ${REQUESTS} ${BASE_URL}${f} >> $$.ab.${started} &
+        ssh $remote ${H2} ${H2_OPTS} -c ${concur} -n ${REQUESTS} ${BASE_URL}${f} >> $$.ab.${started} &
       fi
     done
   done
