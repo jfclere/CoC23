@@ -4,7 +4,7 @@ BASEDIR=`dirname "${0}"`
 
 OUTFILE=${1:-cpu_combined_results.txt}
 REPORT_BASE_DIR=${2:-./reports}
-SIZEVALS="4KiB 16KiB 64KiB 128KiB 512KiB 2MiB 8MiB 32MiB"
+SIZEVALS="4KiB 8KiB 16KiB 32KiB 64KiB 128KiB 256KiB 512KiB 1MiB"
 
 
 > "${OUTFILE}"
