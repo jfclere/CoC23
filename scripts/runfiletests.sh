@@ -5,8 +5,8 @@
 NUMBER_AB=4
 #HOSTSLIST="perf30 perf31 perf32 perf33"
 #HOST=perf29
-#HOSTSLIST="messaging-02 messaging-01 messaging-04 messaging-05"
-HOSTSLIST="messaging-02 messaging-01 messaging-04"
+HOSTSLIST="messaging-02 messaging-01 messaging-04 messaging-05"
+#HOSTSLIST="messaging-02 messaging-01 messaging-04"
 HOST=messaging-07
 
 AB=/home/jfclere/httpd-2.4.10/support/ab
@@ -72,7 +72,7 @@ for f in ${FILES} ; do
   for remote in `echo "$HOSTSLIST"`
   do
     #for box in 1 2 we need 2 ab but only one h2_load
-    for box in 1
+    for box in 1 2
     do
       echo $remote.$box
       started=`expr ${started} + ${concur} `
