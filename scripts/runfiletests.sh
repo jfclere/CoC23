@@ -6,8 +6,10 @@ NUMBER_AB=4
 #HOSTSLIST="perf30 perf31 perf32 perf33"
 #HOST=perf29
 HOSTSLIST="messaging-02 messaging-01 messaging-04 messaging-05"
+#HOSTSLIST="messaging-16 messaging-17 messaging-18 messaging-20"
 #HOSTSLIST="messaging-02 messaging-01 messaging-04"
-HOST=messaging-07
+HOST=messaging-23
+HOST=messaging-08
 
 AB=/home/jfclere/httpd-2.4.10/support/ab
 H2=/home/jfclere/NGHTTP2/bin/h2load
