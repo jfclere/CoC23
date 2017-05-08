@@ -14,6 +14,7 @@ SLEEP_TIME=${4:-5}
 HOST=${5:-localhost}
 HTTPDPORT=${6:-8089}
 HTTPDSPORT=${7:-8099}
+USE_H2=${8:true}
 HTTPD_ONLY=false
 SKIP_HTTP_TESTS=false
 SKIP_HTTPS_TESTS=false
@@ -34,20 +35,20 @@ trap "quit" INT TERM EXIT
 
 # Proxy AJP SSL tests.
 REPORT_FILE=results_proxy_ajp
-"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 https://${HOST}:${HTTPDSPORT}/tcaj/ >/dev/null
+"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 https://${HOST}:${HTTPDSPORT}/tcaj/ ${USE_H2} >/dev/null
 sleep ${SLEEP_TIME}
-"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} https://${HOST}:${HTTPDSPORT}/tcaj/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
+"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} https://${HOST}:${HTTPDSPORT}/tcaj/ ${USE_H2} | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
 
 # Proxy HTTP
 REPORT_FILE=results_proxy_http
-"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 https://${HOST}:${HTTPDSPORT}/tchp/ >/dev/null
+"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 https://${HOST}:${HTTPDSPORT}/tchp/ ${USE_H2} >/dev/null
 sleep ${SLEEP_TIME}
-"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} https://${HOST}:${HTTPDSPORT}/tchp/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
+"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} https://${HOST}:${HTTPDSPORT}/tchp/ ${USE_H2} | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
 
 # Mod_jk
 REPORT_FILE=results_mod_jk
-"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 https://${HOST}:${HTTPDSPORT}/jkaj/ >/dev/null
+"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 https://${HOST}:${HTTPDSPORT}/jkaj/ ${USE_H2} >/dev/null
 sleep ${SLEEP_TIME}
-"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} https://${HOST}:${HTTPDSPORT}/jkaj/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
+"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} https://${HOST}:${HTTPDSPORT}/jkaj/ ${USE_H2} | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
 
 quit
