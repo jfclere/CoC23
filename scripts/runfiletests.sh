@@ -2,25 +2,28 @@
 #
 # Runs the tests for all files against a particular base URL
 #
-NUMBER_AB=4
+NUMBER_AB=1
 #HOSTSLIST="perf30 perf31 perf32 perf33"
 #HOST=perf29
-HOSTSLIST="messaging-02 messaging-01 messaging-04 messaging-05"
+#HOSTSLIST="messaging-02 messaging-01 messaging-04 messaging-05"
 #HOSTSLIST="messaging-16 messaging-17 messaging-18 messaging-20"
 #HOSTSLIST="messaging-02 messaging-01 messaging-04"
-HOST=messaging-23
-HOST=messaging-08
+#HOST=messaging-23
+#HOST=messaging-08
+HOST=clusterdev05
+HOSTSLIST="clusterdev01 clusterdev02"
 
 AB=/home/jfclere/httpd-2.4.10/support/ab
-H2=/home/jfclere/NGHTTP2/bin/h2load
-H2_OPTS="-H 'Host: localhost' --ciphers='DHE-RSA-AES128-GCM-SHA256'"
+H2=/nfs/jfclere/NGHTTP2/bin/h2load
+#H2_OPTS="-H 'Host: localhost' --ciphers='DHE-RSA-AES128-GCM-SHA256'"
+H2_OPTS="--ciphers='DHE-RSA-AES128-GCM-SHA256'"
 AB_OPTS="-r -H 'Host: localhost' -Z 'DHE-RSA-AES128-GCM-SHA256'"
 #AB_OPTS="-r -H 'Host: localhost'" --ciphers='AES128-GCM-SHA256' -Z 'AES128-GCM-SHA256'
 REQUESTS=${1:-1000}
 CONCURRENCY=${2:-1}
 TIME_LIMIT=${3:-0}
 BASE_URL=${4:-http://localhost/}
-USE_H2=${5:false}
+USE_H2=${5:true}
 #FILES="4KiB.bin 8KiB.bin 16KiB.bin 32KiB.bin 64KiB.bin 128KiB.bin 256KiB.bin 512KiB.bin 1MiB.bin 2MiB.bin 4MiB.bin 8MiB.bin 16MiB.bin 32MiB.bin"
 #FILES="4KiB.bin 16KiB.bin 64KiB.bin 128KiB.bin 512KiB.bin 2MiB.bin 8MiB.bin 32MiB.bin"
 FILES="4KiB.bin 8KiB.bin 16KiB.bin 32KiB.bin 64KiB.bin 128KiB.bin 256KiB.bin 512KiB.bin 1MiB.bin"
@@ -63,7 +66,7 @@ for f in ${FILES} ; do
 
   concur=`expr ${CONCURRENCY} / ${NUMBER_AB} `
   # 2 ab per box (because ab is single processor logic
-  concur=`expr ${CONCURRENCY} / 2 `
+  #concur=`expr ${CONCURRENCY} / 2 `
   if [ ${concur} -eq 0 ]; then
     concur=1
   fi
@@ -74,7 +77,7 @@ for f in ${FILES} ; do
   for remote in `echo "$HOSTSLIST"`
   do
     #for box in 1 2 we need 2 ab but only one h2_load
-    for box in 1 2
+    for box in 1
     do
       echo $remote.$box
       started=`expr ${started} + ${concur} `

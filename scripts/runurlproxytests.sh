@@ -4,7 +4,8 @@
 #
 
 # Enough requests to fill 10 minutes?
-REQUESTS=10000000
+#REQUESTS=10000000
+REQUESTS=100000
 
 TIME_LIMIT=${1:-30}
 CONCURRENCY=${2:-40}
@@ -31,76 +32,20 @@ function quit {
 
 trap "quit" INT TERM EXIT
 
-if ${SKIP_HTTP_TESTS}; then
-  echo "skip httpd tests"
-else
-  # httpd
-  REPORT_FILE=results_httpd
-  echo "Running test on http://${HOST}:${HTTPDPORT}/"
-  "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:${HTTPDPORT}/ >/dev/null
-  sleep ${SLEEP_TIME}
-  "${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:${HTTPDPORT}/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
-fi
-if ${SKIP_HTTPS_TESTS}; then
-  echo "skip ssl httpd tests"
-else
-  # httpd
-  REPORT_FILE=results_httpd_ssl
-  echo "Running test on https://${HOST}:${HTTPDPORT}/"
-  "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 https://${HOST}:${HTTPDSPORT}/ >/dev/null
-  sleep ${SLEEP_TIME}
-  "${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} https://${HOST}:${HTTPDSPORT}/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
-fi
-if ${HTTPD_ONLY}; then
-  echo "Done httpd/httpds only proxy"
-  quit
-  exit
-fi
-
-# WildFly AJP
-REPORT_FILE=results_widfly_ajp
-"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:8180/tcaj/ >/dev/null
-sleep ${SLEEP_TIME}
-"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:8180/tcaj/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
-
-# SSL WildFly AJP
-REPORT_FILE=results_ssl_widfly_ajp
-"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 https://${HOST}:8543/tcaj/ >/dev/null
-sleep ${SLEEP_TIME}
-"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} https://${HOST}:8543/tcaj/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
-
-# Proxy AJP
-REPORT_FILE=results_proxy_ajp
-"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:${HTTPDPORT}/tcaj/ >/dev/null
-sleep ${SLEEP_TIME}
-"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:${HTTPDPORT}/tcaj/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
-
-# Proxy HTTP
-REPORT_FILE=results_proxy_http
-"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:${HTTPDPORT}/tchp/ >/dev/null
-sleep ${SLEEP_TIME}
-"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:${HTTPDPORT}/tchp/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
-
-# Mod_jk
-REPORT_FILE=results_mod_jk
-"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 http://${HOST}:${HTTPDPORT}/jkaj/ >/dev/null
-sleep ${SLEEP_TIME}
-"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} http://${HOST}:${HTTPDPORT}/jkaj/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
-
 # Proxy AJP SSL tests.
-REPORT_FILE=results_ssl_proxy_ajp
+REPORT_FILE=results_proxy_ajp
 "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 https://${HOST}:${HTTPDSPORT}/tcaj/ >/dev/null
 sleep ${SLEEP_TIME}
 "${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} https://${HOST}:${HTTPDSPORT}/tcaj/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
 
 # Proxy HTTP
-REPORT_FILE=results_ssl_proxy_http
+REPORT_FILE=results_proxy_http
 "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 https://${HOST}:${HTTPDSPORT}/tchp/ >/dev/null
 sleep ${SLEEP_TIME}
 "${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} https://${HOST}:${HTTPDSPORT}/tchp/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
 
 # Mod_jk
-REPORT_FILE=results_ssl_mod_jk
+REPORT_FILE=results_mod_jk
 "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 https://${HOST}:${HTTPDSPORT}/jkaj/ >/dev/null
 sleep ${SLEEP_TIME}
 "${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} https://${HOST}:${HTTPDSPORT}/jkaj/ | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
