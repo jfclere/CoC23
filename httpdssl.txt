@@ -1,0 +1,89 @@
+Client certificates: (with my CA and /etc/pki/tls/openssl.cnf from here)
+- create the server keycert pair.
+  openssl req -new -out jfcpc_newreq.pem -keyout jfcpc_newkey.pem
+  sudo openssl ca -in jfcpc_newreq.pem -out jfcpc_newcert.pem
+- 2 client certificates (one valide one revoked).
+  openssl req -new -out valid_newreq.pem -keyout valid_newkey.pem (create the request)
+  sudo openssl ca -in valid_newreq.pem -out valid_newcert.pem (sign it)
+  openssl pkcs12 -export -inkey valid_newkey.pem -in valid_newcert.pem -out valid.p12 (export for FF).
+
+  same for invalid...
+
+- With CRL.
+  generate the invalid list
++++
+[jfclere@localhost httpdssl]$ openssl x509 -text -noout -in invalid_newcert.pem
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number:
+            b9:48:77:eb:ce:53:1b:d2
++++
+  Got serial number: b9:48:77:eb:ce:53:1b:d2
++++
+ls -lt /etc/pki/CA/newcerts/ | grep B9 | grep D2
+[jfclere@localhost APACHE]$ ls -lt /etc/pki/CA/newcerts/ | grep B9 | grep D2
+-rw-r--r--. 1 root root 4649 Aug 19 16:33 B94877EBCE531BD2.pem
++++
+  revoke it:
++++
+sudo openssl ca -revoke /etc/pki/CA/newcerts/B94877EBCE531BD2.pem
+Using configuration from /etc/pki/tls/openssl.cnf
+Enter pass phrase for /etc/pki/CA/private/cakey.pem:
+Revoking Certificate B94877EBCE531BD2.
+Data Base Updated
++++
+  regenerate the revocation list:
++++
+openssl ca -gencrl -out crl_01.pem  
+Using configuration from /etc/pki/tls/openssl.cnf
+Enter pass phrase for /etc/pki/CA/private/cakey.pem:
++++
+
+- With OCSP responder. The demo use ocspd from OpenCA Project
+  openssl req -new -out ocsp_newreq.pem -keyout ocsp_newkey.pem -extensions v3_OCSP
+  sudo openssl ca -in ocsp_newreq.pem -out ocsp_newcert.pem -extensions v3_OCSP
+  edit the /etc/ocspd/ocspd.conf
+  sudo /usr/sbin/ocspd -d -c /etc/ocspd/ocspd.conf -k super_safe_password
+  test with openssl
+  openssl ocsp -VAfile ocsp_newcert.pem -issuer /etc/pki/CA/cacert.pem -cert invalid_newcert.pem -url http://localhost:2560/
+
+Note OCSP responder needs the following in /etc/pki/tls/openssl.cnf:
++++
+[ v3_OCSP ]
+
+basicConstraints = CA:FALSE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage = OCSPSigning
++++
+
+Note the certificates have alternates names (jfcpc and localhost):
+https://localhost:8888/cgi-bin/printenv
+https://jfcpc:8888/cgi-bin/printenv
++++
+[ v3_ext ]
+
+basicConstraints = CA:FALSE
+subjectAltName   = @alt_names
+
+[alt_names]
+
+DNS.1 = jfcpc
+DNS.2 = localhost
++++
+
+The CA can also put a OCSP server and stamping in:
++++
+[ usr_cert ]
+#extendedKeyUsage = critical,timeStamping
+authorityInfoAccess = OCSP;URI:http://localhost:2560/
++++
+Create the certificate and sign it.
+  openssl req -new -out valid_ocsp_newreq.pem -keyout valid_ocsp_newkey.pem (create the request)
+  sudo openssl ca -in valid_ocsp_newreq.pem -out valid_ocsp_newcert.pem (sign it)
+  openssl pkcs12 -export -inkey valid_ocsp_newkey.pem -in valid_ocsp_newcert.pem -out valid_ocsp.p12 (export for FF).
+Check OSCP server:
++++
+[jfclere@pc-87 httpdssl]$ openssl x509 -noout -ocsp_uri -in valid_ocsp_newcert.pem
+http://localhost:2560/
++++

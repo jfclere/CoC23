@@ -10,14 +10,18 @@ NUMBER_AB=1
 #HOSTSLIST="messaging-02 messaging-01 messaging-04"
 #HOST=messaging-23
 #HOST=messaging-08
-HOST=clusterdev05
-HOSTSLIST="clusterdev01 clusterdev02"
+#HOST=clusterdev05
+HOST=192.168.1.120
+#HOSTSLIST="clusterdev01 clusterdev02"
+HOSTSLIST="localhost"
 
 AB=/home/jfclere/httpd-2.4.10/support/ab
 H2=/nfs/jfclere/NGHTTP2/bin/h2load
+H2=/usr/bin/h2load
 #H2_OPTS="-H 'Host: localhost' --ciphers='DHE-RSA-AES128-GCM-SHA256'"
 H2_OPTS="--ciphers='DHE-RSA-AES128-GCM-SHA256'"
 AB_OPTS="-r -H 'Host: localhost' -Z 'DHE-RSA-AES128-GCM-SHA256'"
+# See ECDHE-RSA-AES256-GCM-SHA384 (curl default)
 #AB_OPTS="-r -H 'Host: localhost'" --ciphers='AES128-GCM-SHA256' -Z 'AES128-GCM-SHA256'
 REQUESTS=${1:-1000}
 CONCURRENCY=${2:-1}
@@ -26,7 +30,8 @@ BASE_URL=${4:-http://localhost/}
 USE_H2=${5:true}
 #FILES="4KiB.bin 8KiB.bin 16KiB.bin 32KiB.bin 64KiB.bin 128KiB.bin 256KiB.bin 512KiB.bin 1MiB.bin 2MiB.bin 4MiB.bin 8MiB.bin 16MiB.bin 32MiB.bin"
 #FILES="4KiB.bin 16KiB.bin 64KiB.bin 128KiB.bin 512KiB.bin 2MiB.bin 8MiB.bin 32MiB.bin"
-FILES="4KiB.bin 8KiB.bin 16KiB.bin 32KiB.bin 64KiB.bin 128KiB.bin 256KiB.bin 512KiB.bin 1MiB.bin"
+#FILES="4KiB.bin 8KiB.bin 16KiB.bin 32KiB.bin 64KiB.bin 128KiB.bin 256KiB.bin 512KiB.bin 1MiB.bin"
+FILES="4KiB.bin 8KiB.bin 16KiB.bin 32KiB.bin 64KiB.bin"
 
 function stop_vmstat {
   if [ -n "${VMSTAT_PID}" ] ; then
