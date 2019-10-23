@@ -33,7 +33,7 @@ Enter pass phrase for /etc/pki/CA/private/cakey.pem:
 Revoking Certificate B94877EBCE531BD2.
 Data Base Updated
 +++
-  regenerate the revocation list:
+  regenerate the revocation list: (remember it is NOT valid for ever, just create the crl_01.pem before demo, if needed).
 +++
 openssl ca -gencrl -out crl_01.pem  
 Using configuration from /etc/pki/tls/openssl.cnf
@@ -72,7 +72,7 @@ DNS.1 = jfcpc
 DNS.2 = localhost
 +++
 
-The CA can also put a OCSP server and stamping in:
+The CA can also put a OCSP server and stamping in: (test on port 8892 make sure to use "ApacheCon OCSP certificate")
 +++
 [ usr_cert ]
 #extendedKeyUsage = critical,timeStamping
