@@ -1,7 +1,9 @@
-ApacheCon scripts
-=============
+# ApacheCon scripts
 
-Script to do the tests used to fill the data of ApacheCon 2014 presentation.
+## H2/HTTP/1.1 demo and benchmarks,look in scripts and conf:
+
+Script to do the tests used to fill the data of ApacheCon presentations:
+
 
 To create the files used for the test: in script
 mkdatafiles.sh
@@ -28,3 +30,7 @@ Transfer rate   filename (file size) (4KiB = 4 x 1024 bytes) and transfert in [K
 22066.28        8KiB.bin
 38160.77        16KiB.bin
 58951.41        32KiB.bin
+
+## Apache HTTPD certificate validation:
+
+Look in httpdssl.txt and https://www.slideshare.net/jfclere/apache-httpd-and-tlsssl-certificates-validation to have the corresponding presentation.
