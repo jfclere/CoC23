@@ -1,0 +1,129 @@
+HTTP/2, HTTP/3 and SSL/TLS State of Art in Our Servers
+A new protocol is getting ready HTTP/3 we will look to where we are with it in our serves.
+The "old" HTTP/2 protocol and the corresponding TLS/SSL are common to Traffic Server, HTTP Server and Tomcat.
+The presentation will shortly explain the new protocol and the ALPN extensions and look to the state of the those in our 3 servers and show the common parts and the specifics of each servers.
+A demo configuration of each server will be run
+
+TS we have all: (/home/jfclere/NOTES/APACHECONNA2019/TS/ATS).
+ATS: (logs in ./var/log/trafficserver)
+bin/trafficserver start
+
+ssl_multicert.config (certificates stuff).
+dest_ip=* ssl_cert_name=/home/jfclere/CERTS/newcert.pem ssl_key_name=/home/jfclere/CERTS/newkey.txt.pem
+
+# JFC ADDS in records.config
+CONFIG proxy.config.udp.threads INT 1
+CONFIG proxy.config.http.server_ports STRING 4433:quic
+CONFIG proxy.config.diags.debug.enabled INT 1
+CONFIG proxy.config.diags.debug.tags STRING quic
+
+So on port 4433
+
+# JFC ADDS in remap.config
+map / http://127.0.0.1:8080/
+
+
+CURL: a HTTP/3 curl (in TS too!!!)
+export LD_LIBRARY_PATH=/home/jfclere/NOTES/APACHECONNA2019/TS/quiche/target/release
+CURL/bin/curl --http3 https://quic.tech:8443
+
+CURL/bin/curl -v --alt-svc altcache https://quic.tech:8443
+CURL/bin/curl -v --alt-svc altcache https://quic.tech:8443 (twice so it reuses the altcache file).
+
+CURL/bin/curl --alt-svc altsvc.cache https://quic.aiortc.org/
+CURL/bin/curl -v --alt-svc altsvc.cache https://quic.aiortc.org/ (works:)
++++
+[jfclere@dhcp-144-218 H3]$ CURL/bin/curl -v --alt-svc altsvc.cache https://quic.aiortc.org/
+* Alt-svc connecting from [h1]quic.aiortc.org:443 to [h3-24]quic.aiortc.org:443
+*   Trying 34.247.69.99:443...
+* Sent QUIC client Initial, ALPN: h3-24h3-23
+* h3 [:method: GET]
+* h3 [:path: /]
+* h3 [:scheme: https]
+* h3 [:authority: quic.aiortc.org]
+* h3 [user-agent: curl/7.69.0-DEV]
+* h3 [accept: */*]
+* h3 [alt-used: quic.aiortc.org:443]
+* Using HTTP/3 Stream ID: 0 (easy handle 0x15188a0)
+> GET / HTTP/3
+> Host: quic.aiortc.org
+> user-agent: curl/7.69.0-DEV
+> accept: */*
+> alt-used: quic.aiortc.org:443
+> 
+< HTTP/3 200
+< server: aioquic/0.8.4
++++
+more altsvc.cache
+h1 quic.aiortc.org 443 h3-24 quic.aiortc.org 443 "20200121 13:48:17" 0 0 ...
+
+CURL/bin/curl --http3 https://localhost:4433/ (now it cores....)
+
+Is it blocked on fedora by the firewall... well not... something weird :-( Only localhost url OK :-(
+
+< alt-svc: h3-23=":8443"; ma=86400 (are they doing 23 now?) curl does h3-22!!!
+
+NOTES: (also with the new CURL:  Sent QUIC client Initial, ALPN: h3-24h3-23 ...
++++
+[jfclere@localhost TS]$ CURL/bin/curl --http3 -v https://blog.cloudflare.com/
+*   Trying 2606:4700::6812:1b2e:443...
+* Sent QUIC client Initial, ALPN: h3-29,h3-28,h3-27
+* Connected to blog.cloudflare.com (2606:4700::6812:1b2e) port 443 (#0)
+* h3 [:method: GET]
+* h3 [:path: /]
+* h3 [:scheme: https]
+* h3 [:authority: blog.cloudflare.com]
+* h3 [user-agent: curl/7.67.0-DEV]
+* h3 [accept: */*]
+* Using HTTP/3 Stream ID: 0 (easy handle 0x2367870)
+> GET / HTTP/3
+> Host: blog.cloudflare.com
+> user-agent: curl/7.67.0-DEV
+> accept: */*
+> 
+< HTTP/3 200
+< date: Thu, 10 Oct 2019 13:38:07 GMT ...
+< alt-svc: h3-27=":443"; ma=86400, h3-28=":443"; ma=86400, h3-29=":443"; ma=86400
++++
+So yes some servers do only one version... And no answer when the protocol isn't the right version!!!
+
+Nores for https://github.com/ngtcp2 (it requires a patched version of openssl)... Like traffic server?
+
+https://www.techradar.com/news/google-chrome-firefox-and-cloudflare-add-http3-protection
+Firefox Nightly ... OK downloaded: firefox-74.0a1.en-US.linux-x86_64.tar.bz2 https://cloudflare-quic.com/ H3 working :D
+
+Playing with TS and tomcat...
+redirect to "Location", "https://localhost:4433/docs/ doesn't work. do http 1.1 or http 2 on port 4433 :-(
+
+redirect to "Location", "/docs/" doesn't work. do http 1.1 on port 8443 :-(
+
+same problem with a filter... do http 1.1 on port 8443 :-( (conf/web.xml)
+
+using iptables?
+traffic server on 4433 tcp/upd tomcat on 8443
+iptables -t nat -A PREROUTING -i lo -p tcp --dport 4433 -j REDIRECT --to-port 8443 (doesn't work).
+Need both... and use 127.0.0.1 (works with curl -k but not with FF/Chrome)
+iptables -t nat -I PREROUTING --src 0/0 --dst 127.0.0.1 -p tcp --dport 4433 -j REDIRECT --to-ports 8443
+iptables -t nat -I OUTPUT --src 0/0 --dst 127.0.0.1 -p tcp --dport 4433 -j REDIRECT --to-ports 8443
+
+try signinng the cert...
+keytool -genkey -alias tomcat -keyalg RSA -^Cystore conf/localhost-rsa.jks
+keytool -certreq -alias tomcat -keystore conf/localhost-rsa.jks -file tomcat.req
+trying...
+/etc/pki/tls/openssl.cnf:
++++
+[ policy_match ]
+countryName             = match
+stateOrProvinceName     = match -> supplied
+organizationName        = match -> supplied
+organizationalUnitName  = optional
+commonName              = supplied
+emailAddress            = optional
+....
+
+sudo openssl ca -in tomcat.req -out tomcat.crt
+keytool -import -trustcacerts -alias tomcat -file tomcat.crt -keystore conf/localhost-rsa.jks
+keytool error: java.lang.Exception: Failed to establish chain from reply ...
+keytool -import -trustcacerts -file /etc/pki/CA/cacert.pem -keystore conf/localhost-rsa.jks
+keytool -import -trustcacerts -alias tomcat -file tomcat.crt -keystore conf/localhost-rsa.jks
+Looks done :D
