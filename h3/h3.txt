@@ -4,12 +4,12 @@ The "old" HTTP/2 protocol and the corresponding TLS/SSL are common to Traffic Se
 The presentation will shortly explain the new protocol and the ALPN extensions and look to the state of the those in our 3 servers and show the common parts and the specifics of each servers.
 A demo configuration of each server will be run
 
-TS we have all: (/home/jfclere/NOTES/APACHECONNA2019/TS/ATS).
+TS we have all: (/home/jfclere/H3/ATS).
 ATS: (logs in ./var/log/trafficserver)
 bin/trafficserver start
 
 ssl_multicert.config (certificates stuff).
-dest_ip=* ssl_cert_name=/home/jfclere/CERTS/newcert.pem ssl_key_name=/home/jfclere/CERTS/newkey.txt.pem
+dest_ip=* ssl_cert_name=/home/jfclere/CERTS/SERVER/newcert.pem ssl_key_name=/home/jfclere/CERTS/SERVER/newkey.txt.pem
 
 # JFC ADDS in records.config
 CONFIG proxy.config.udp.threads INT 1
@@ -23,8 +23,8 @@ So on port 4433
 map / http://127.0.0.1:8080/
 
 
-CURL: a HTTP/3 curl (in TS too!!!)
-export LD_LIBRARY_PATH=/home/jfclere/NOTES/APACHECONNA2019/TS/quiche/target/release
+CURL: a HTTP/3 curl (in /home/jfclere/H3 too!!!)
+export LD_LIBRARY_PATH=/home/jfclere/H3/OPENSSL/lib
 CURL/bin/curl --http3 https://quic.tech:8443
 
 CURL/bin/curl -v --alt-svc altcache https://quic.tech:8443
@@ -32,6 +32,30 @@ CURL/bin/curl -v --alt-svc altcache https://quic.tech:8443 (twice so it reuses t
 
 CURL/bin/curl --alt-svc altsvc.cache https://quic.aiortc.org/
 CURL/bin/curl -v --alt-svc altsvc.cache https://quic.aiortc.org/ (works:)
+
+CURL/bin/curl -v -k --alt-svc altcache https://localhost:8443/
+CURL/bin/curl -v -k --alt-svc altcache https://localhost:8443/ (works...)
++++
+[jfclere@ovpn-113-163 H3]$ CURL/bin/curl -v -k --alt-svc altcache https://localhost:8443/
+* Alt-svc connecting from [h1]localhost:8443 to [h3-29]localhost:8443
+*   Trying 127.0.0.1:8443...
+* Connect socket 5 over QUIC to 127.0.0.1:8443
+* Connected to localhost () port 8443 (#0)
+* Using HTTP/3 Stream ID: 0 (easy handle 0x1cad9a0)
+> GET / HTTP/3
+> Host: localhost:8443
+> user-agent: curl/7.79.0-DEV
+> accept: */*
+> alt-used: localhost:8443
+> 
+* ngh3_stream_recv returns 0 bytes and EAGAIN
+< HTTP/3 200 
+* Unknown alt-svc protocol "h3", skipping.
+* Unknown alt-svc protocol "h3-32", skipping.
+* Added alt-svc: localhost:8443 over h3-29
++++
+So curl does h3-29 (so old version).
+
 +++
 [jfclere@dhcp-144-218 H3]$ CURL/bin/curl -v --alt-svc altsvc.cache https://quic.aiortc.org/
 * Alt-svc connecting from [h1]quic.aiortc.org:443 to [h3-24]quic.aiortc.org:443
@@ -57,7 +81,7 @@ CURL/bin/curl -v --alt-svc altsvc.cache https://quic.aiortc.org/ (works:)
 more altsvc.cache
 h1 quic.aiortc.org 443 h3-24 quic.aiortc.org 443 "20200121 13:48:17" 0 0 ...
 
-CURL/bin/curl --http3 https://localhost:4433/ (now it cores....)
+CURL/bin/curl --http3 https://localhost:8443/
 
 Is it blocked on fedora by the firewall... well not... something weird :-( Only localhost url OK :-(
 
@@ -98,16 +122,41 @@ redirect to "Location", "https://localhost:4433/docs/ doesn't work. do http 1.1 
 redirect to "Location", "/docs/" doesn't work. do http 1.1 on port 8443 :-(
 
 same problem with a filter... do http 1.1 on port 8443 :-( (conf/web.xml)
+See https://github.com/jfclere/AC2021/tree/master/h3
+mvn install
+cp /home/jfclere/TMP/AC2021/h3/target/demo-1.0-SNAPSHOT.jar lib (tomcat)
+and add in the conf/web.xml (the web.xml file)
 
-using iptables?
+using iptables? (NOT NEEDED 2020/09/29)
 traffic server on 4433 tcp/upd tomcat on 8443
 iptables -t nat -A PREROUTING -i lo -p tcp --dport 4433 -j REDIRECT --to-port 8443 (doesn't work).
 Need both... and use 127.0.0.1 (works with curl -k but not with FF/Chrome)
 iptables -t nat -I PREROUTING --src 0/0 --dst 127.0.0.1 -p tcp --dport 4433 -j REDIRECT --to-ports 8443
 iptables -t nat -I OUTPUT --src 0/0 --dst 127.0.0.1 -p tcp --dport 4433 -j REDIRECT --to-ports 8443
 
+iptables -t nat -I PREROUTING --src 0/0 --dst 127.0.0.1 -p tcp --dport 443 -j REDIRECT --to-ports 8443
+iptables -t nat -I OUTPUT --src 0/0 --dst 127.0.0.1 -p tcp --dport 443 -j REDIRECT --to-ports 8443
+iptables -t nat -S (to check)
+iptables -t nat -D "PREROUTING/OUTPUT" to delete.
+
+firewall-cmd:
+firewall-cmd --add-forward-port=port=4433:proto=tcp:toport=8443 (easy no?)...
+
+NOTOK:
+iptables -t nat -I PREROUTING --src 0/0 --dst 127.0.0.1 -p udp --dport 443 -j REDIRECT --to-ports 4443
+iptables -t nat -I OUTPUT --src 0/0 --dst 127.0.0.1 -p udp --dport 443 -j REDIRECT --to-ports 4443
+
+NOTOK:
+iptables -t nat -A PREROUTING -p UDP -i lo -d 127.0.0.1 --dport 443 -j DNAT --to-destination 127.0.0.1:4433
+iptables -A FORWARD -p UDP -d 127.0.0.1 --dport 443 -j ACCEPT
+iptables -t nat -A PREROUTING -i lo -p udp --dport 443 -j REDIRECT --to-port 4433
+
+Trying firewall? --zone=FedoraWorkstation (not needed)
+firewall-cmd --add-port=443/udp
+firewall-cmd --add-forward-port=port=443:proto=udp:toport=4433:toaddr=127.0.0.1
+
 try signinng the cert...
-keytool -genkey -alias tomcat -keyalg RSA -^Cystore conf/localhost-rsa.jks
+keytool -genkey -alias tomcat -keyalg RSA -keystore conf/localhost-rsa.jks
 keytool -certreq -alias tomcat -keystore conf/localhost-rsa.jks -file tomcat.req
 trying...
 /etc/pki/tls/openssl.cnf:
@@ -121,9 +170,112 @@ commonName              = supplied
 emailAddress            = optional
 ....
 
-sudo openssl ca -in tomcat.req -out tomcat.crt
+sudo openssl ca -in tomcat.req -out tomcat.crt -extfile v3.ext
 keytool -import -trustcacerts -alias tomcat -file tomcat.crt -keystore conf/localhost-rsa.jks
 keytool error: java.lang.Exception: Failed to establish chain from reply ...
 keytool -import -trustcacerts -file /etc/pki/CA/cacert.pem -keystore conf/localhost-rsa.jks
 keytool -import -trustcacerts -alias tomcat -file tomcat.crt -keystore conf/localhost-rsa.jks
-Looks done :D
+Looks done :D (works with FF but not with Chrome...) it misses "Subject Alternative Names"... Well not enough it seems...
+
+making network slow or fuzzy: (it can drop...)
+So play with latency:
+tc qdisc add dev eth0 delay 85ms 20ms (to get something that isn't localhost).
+tc qdisc del dev eth0 root (remove it).
+tc qdisc add dev eth0 root netem delay 185ms 120ms
+See https://sandilands.info/sgordon/dropping-packets-in-ubuntu-linux-using-tc-and-iptables
+
+/etc/httpd/conf.d/ssl.conf
+
+problem:
++++
+2021-09-16 16:14:04.377730 UTC - [Parent 286566: Main Thread]: V/nsHttp doc origin:https://localhost:4433/ - res origin: https://localhost:4433/
+2021-09-16 16:14:04.377738 UTC - [Parent 286566: Main Thread]: V/nsHttp nsHttpChannel: No Strict-Transport-Security header, continuing load.
+2021-09-16 16:14:04.377738 UTC - [Parent 286566: Socket Thread]: V/nsHttp 00000950: 69 3E 0A 20 20 20 20 20 20 20 20 20 20 20 20 20
+2021-09-16 16:14:04.377746 UTC - [Parent 286566: Main Thread]: D/nsHttp AltSvcMapping::ProcessHeader: h3=":4433"; ma=3600, h3-29=":4433"; ma=3600
+2021-09-16 16:14:04.377747 UTC - [Parent 286566: Socket Thread]: V/nsHttp 00000960: 20 20 20 20 20 20 20 20 20 20 20 20 20 20 20 3C
+2021-09-16 16:14:04.377748 UTC - [Parent 286566: Main Thread]: D/nsHttp Alt-Svc Response Header h3=":4433"; ma=3600, h3-29=":4433"; ma=3600
+2021-09-16 16:14:04.377765 UTC - [Parent 286566: Socket Thread]: V/nsHttp 00000970: 6C 69 3E 3C 61 20 68 72 65 66 3D 22 68 74 74 70
+2021-09-16 16:14:04.377772 UTC - [Parent 286566: Socket Thread]: V/nsHttp 00000980: 73 3A 2F 2F 74 6F 6D 63 61 74 2E 61 70 61 63 68
+2021-09-16 16:14:04.377775 UTC - [Parent 286566: Socket Thread]: V/nsHttp 00000990: 65 2E 6F 72 67 2F 68 65 72 69 74 61 67 65 2E 68
+2021-09-16 16:14:04.377776 UTC - [Parent 286566: Main Thread]: D/nsHttp Alt Svc unknown protocol h3, ignoring
+2021-09-16 16:14:04.377778 UTC - [Parent 286566: Socket Thread]: V/nsHttp 000009A0: 74 6D 6C 22 3E 48 65 72 69 74 61 67 65 3C 2F 61
+2021-09-16 16:14:04.377781 UTC - [Parent 286566: Main Thread]: D/nsHttp Alt Svc unknown protocol h3-29, ignoring
++++
+
++++
+curl says:
+* TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
+< HTTP/2 200 
+* Unknown alt-svc protocol "h3", skipping.
+* Unknown alt-svc protocol "h3-32", skipping.
+< alt-svc: h3=":4433"; ma=3600, h3-32=":4433"; ma=3600
++++
+OK looks that curl is 29 (From here...)
++++
+* TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
+< HTTP/2 200 
+* Unknown alt-svc protocol "h3", skipping.
+* Added alt-svc: localhost:4433 over h3-29
+< alt-svc: h3=":4433"; ma=3600, h3-29=":4433"; ma=3600
++++
+
+Actually it seems some dns stuff is needed... nsHostResolver  (localhost is NOT resolved!!!)
+
++++
+[jfclere@ovpn-113-163 CERTS]$ grep nsHostResolver /tmp/log.txt-main.303273.moz_log | grep quic.rocks
+2021-09-17 15:28:46.223847 UTC - [Parent 303273: Main Thread]: D/nsHostResolver Resolving host [quic.rocks]<^partitionKey=%28https%2Cquic.rocks%29> - bypassing cache type 0. [this=7f7f93273970]
+2021-09-17 15:28:46.223866 UTC - [Parent 303273: Main Thread]: D/nsHostResolver   No usable record in cache for host [quic.rocks] type 0.
+2021-09-17 15:28:46.223877 UTC - [Parent 303273: Main Thread]: D/nsHostResolver NameLookup host:quic.rocks af:2
+2021-09-17 15:28:46.223887 UTC - [Parent 303273: Main Thread]: D/nsHostResolver NameLookup: quic.rocks effectiveTRRmode: 1 flags: 11
+2021-09-17 15:28:46.223988 UTC - [Parent 303273: Main Thread]: D/nsHostResolver NativeLookup host:quic.rocks af:2
+2021-09-17 15:28:46.224150 UTC - [Parent 303273: Main Thread]: D/nsHostResolver   DNS lookup for host [quic.rocks] blocking pending 'getaddrinfo' or trr query: callback [7f7f0eb2e100]
+2021-09-17 15:28:46.224212 UTC - [Parent 303273: Main Thread]: D/nsHostResolver Resolving host [quic.rocks]<^partitionKey=%28https%2Cquic.rocks%29> - bypassing cache type 65. [this=7f7f93273970]
+2021-09-17 15:28:46.224204 UTC - [Parent 303273: DNS Resolver #12]: E/nsHostResolver DNS lookup thread - Calling getaddrinfo for host [quic.rocks].
+2021-09-17 15:28:46.226993 UTC - [Parent 303273: Main Thread]: D/nsHostResolver Resolving host [quic.rocks]<^partitionKey=%28https%2Cquic.rocks%29> - bypassing cache type 65. [this=7f7f93273970]
+2021-09-17 15:28:46.229661 UTC - [Parent 303273: Socket Thread]: D/nsHostResolver Resolving host [quic.rocks]<^partitionKey=%28https%2Cquic.rocks%29> type 0. [this=7f7f93273970]
+2021-09-17 15:28:46.229680 UTC - [Parent 303273: Socket Thread]: D/nsHostResolver   Host [quic.rocks] is being resolved. Appending callback [7f7f106bf400].
+2021-09-17 15:28:46.262617 UTC - [Parent 303273: DNS Resolver #12]: E/nsHostResolver DNS lookup thread - lookup completed for host [quic.rocks]: success.
+2021-09-17 15:28:46.262642 UTC - [Parent 303273: DNS Resolver #12]: D/nsHostResolver nsHostResolver::CompleteLookup quic.rocks 7f7f15d5d0b0 0 resolver=0 stillResolving=0
+2021-09-17 15:28:46.262650 UTC - [Parent 303273: DNS Resolver #12]: D/nsHostResolver different_rrset quic.rocks
+2021-09-17 15:28:46.262674 UTC - [Parent 303273: DNS Resolver #12]: D/nsHostResolver Caching host [quic.rocks] record for 60 seconds (grace 60).
+2021-09-17 15:28:46.262683 UTC - [Parent 303273: DNS Resolver #12]: D/nsHostResolver CompleteLookup: quic.rocks has 216.155.158.183
+2021-09-17 15:28:46.263449 UTC - [Parent 303273: Socket Thread]: D/nsHostResolver Checking unusable list for host [quic.rocks], host record [7f7f49027cc0].
+2021-09-17 15:28:46.263634 UTC - [Parent 303273: Socket Thread]: D/nsHostResolver Checking unusable list for host [quic.rocks], host record [7f7f49027cc0].
+2021-09-17 15:28:46.608899 UTC - [Parent 303273: Socket Thread]: D/nsHostResolver Resolving host [quic.rocks]<^partitionKey=%28https%2Cquic.rocks%29> type 0. [this=7f7f93273970]
+2021-09-17 15:28:46.608912 UTC - [Parent 303273: Socket Thread]: D/nsHostResolver   Using cached record for host [quic.rocks].
+2021-09-17 15:28:46.609122 UTC - [Parent 303273: Socket Thread]: D/nsHostResolver Checking unusable list for host [quic.rocks], host record [7f7f49027cc0].
+2021-09-17 15:28:46.609772 UTC - [Parent 303273: Socket Thread]: D/nsHostResolver Checking unusable list for host [quic.rocks], host record [7f7f49027cc0].
+2021-09-17 15:28:46.625796 UTC - [Parent 303273: Main Thread]: D/nsHostResolver Resolving host [quic.rocks]<^partitionKey=%28https%2Cquic.rocks%29> - bypassing cache type 0. [this=7f7f93273970]
+2021-09-17 15:28:46.625808 UTC - [Parent 303273: Main Thread]: D/nsHostResolver   No usable record in cache for host [quic.rocks] type 0.
+2021-09-17 15:28:46.625813 UTC - [Parent 303273: Main Thread]: D/nsHostResolver NameLookup host:quic.rocks af:2
+2021-09-17 15:28:46.625819 UTC - [Parent 303273: Main Thread]: D/nsHostResolver NameLookup: quic.rocks effectiveTRRmode: 1 flags: 11
+2021-09-17 15:28:46.625828 UTC - [Parent 303273: Main Thread]: D/nsHostResolver NativeLookup host:quic.rocks af:2
+2021-09-17 15:28:46.625876 UTC - [Parent 303273: Main Thread]: D/nsHostResolver   DNS lookup for host [quic.rocks] blocking pending 'getaddrinfo' or trr query: callback [7f7f0ebf6b80]
+2021-09-17 15:28:46.625893 UTC - [Parent 303273: Main Thread]: D/nsHostResolver Resolving host [quic.rocks]<^partitionKey=%28https%2Cquic.rocks%29> - bypassing cache type 65. [this=7f7f93273970]
+2021-09-17 15:28:46.625917 UTC - [Parent 303273: DNS Resolver #11]: E/nsHostResolver DNS lookup thread - Calling getaddrinfo for host [quic.rocks].
+2021-09-17 15:28:46.626781 UTC - [Parent 303273: Main Thread]: D/nsHostResolver Resolving host [quic.rocks]<^partitionKey=%28https%2Cquic.rocks%29> - bypassing cache type 65. [this=7f7f93273970]
+2021-09-17 15:28:46.651742 UTC - [Parent 303273: DNS Resolver #11]: E/nsHostResolver DNS lookup thread - lookup completed for host [quic.rocks]: success.
+2021-09-17 15:28:46.651757 UTC - [Parent 303273: DNS Resolver #11]: D/nsHostResolver nsHostResolver::CompleteLookup quic.rocks 7f7f11f92fb0 0 resolver=0 stillResolving=0
+2021-09-17 15:28:46.651761 UTC - [Parent 303273: DNS Resolver #11]: D/nsHostResolver different_rrset quic.rocks
+2021-09-17 15:28:46.651771 UTC - [Parent 303273: DNS Resolver #11]: D/nsHostResolver Caching host [quic.rocks] record for 60 seconds (grace 60).
+2021-09-17 15:28:46.651776 UTC - [Parent 303273: DNS Resolver #11]: D/nsHostResolver CompleteLookup: quic.rocks has 216.155.158.183
++++
+
+dig quic.rocks -t TYPE65 (no idea but that looks enough???)
+
+something weird: security.ssl.enable_ocsp_must_staple prevents H3???
+in my certificate: openssl x509 -in /home/jfclere/H3/certs/pubcert.pem -text
++++
+            Authority Information Access: 
+                OCSP - URI:http://r3.o.lencr.org
+                CA Issuers - URI:http://r3.i.lencr.org/
++++
+
+Works well....
+/opt/google/chrome/chrome --enable-quic  --quic-version=h3-29 --origin-to-force-quic-on=jfclere.myddns.me:4433 url
+/opt/google/chrome/chrome --enable-quic  --quic-version=h3-29 --origin-to-force-quic-on=jfclere.myddns.me:4433 https://jfclere.myddns.me:4433/index.jsp
+/opt/google/chrome/chrome --enable-quic  --quic-version=h3-29 https://jfclere.myddns.me:4433/ (probably the OK one!!!
+--auto-open-devtools-for-tabs (to get the tab with the devtools ;-)
+
+ma=3600... 1 hour really!!! won't be 60 enough?
+

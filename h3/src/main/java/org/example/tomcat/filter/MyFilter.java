@@ -53,7 +53,9 @@ public class MyFilter implements Filter {
 
         System.out.println("doFilter Called!!!"); 
         HttpServletResponse httpResponse = (HttpServletResponse) response;
-        httpResponse.setHeader("alt-svc", "h3-27=\":4433\"; ma=86400, h3-28=\":4433\"; ma=86400, h3-29=\":4433\"; ma=86400");
+        // According to trace FF supprt h3 and h3-29...
+        httpResponse.setHeader("alt-svc", "h3=\":4433\"; ma=3600, h3-32=\":4433\"; ma=3600");
+        httpResponse.setHeader("alt-svc", "h3=\":4433\"; ma=3600, h3-29=\":4433\"; ma=3600");
         chain.doFilter(request, httpResponse);
     }
  
