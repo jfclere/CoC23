@@ -1,0 +1,151 @@
+Demo some of the possible conbinations:
+H2C on Tomcat port 8081 from H2 httpd 8893  demo-1.0 (according to the war file name :D)
+HTTP/1 on Tomcat port 8080 from H2 httpd 8894  demo-1.0 (according to the war file name :D)
+AJP on Tomcat port 8080 from H2 httpd 8895  demo-1.0
+AJP on Tomcat port 8080 from H2 httpd 8895  demo-1.0 using mod_jk
+
+ssl:
+simple, tomcat 8443.
+curl -v --cacert /etc/pki/CA/cacert.pem https://localhost:8443/
+SSLProxyEngine on
+SSLProxyCACertificateFile  "/etc/pki/CA/cacert.pem"
+
+ProxyPass "/examples" "https://localhost:8443/examples"
+ProxyPassReverse "/examples" "https://localhost:8443/examples"
+
+curl -v http://localhost:8000/examples/
+
+Client Authentication, tomcat 8443: the proxy acts as a client (browser)
++++
+              <SSLHostConfig protocols="TLSv1.2" certificateVerification="required" caCertificateFile="/etc/pki/CA/cacert.pem">
+              <Certificate
+                 certificateFile="/home/jfclere/CERTS/localhost/newcert.pem"
+                 certificateKeyFile="/home/jfclere/CERTS/localhost/newkey.txt.pem"/>
+              </SSLHostConfig>
++++
+Note I NEEED "NO_OCSP_CHECK=true" because my client certificates are generated like that.
++++
+   <Connector port="8443" protocol="org.apache.coyote.http11.Http11NioProtocol"
+               maxThreads="150" SSLEnabled="true" >
+              <SSLHostConfig protocols="TLSv1.2" certificateVerification="required" caCertificateFile="/etc/pki/CA/cacert.pem">
+              <Certificate
+                 certificateFile="/home/jfclere/CERTS/localhost/newcert.pem"
+                 certificateKeyFile="/home/jfclere/CERTS/localhost/newkey.txt.pem"/>
+              <OpenSSLConf>
+                 <OpenSSLConfCmd name="NO_OCSP_CHECK" value="true" />
+              </OpenSSLConf>
+              </SSLHostConfig>
+    </Connector>
++++
+curl -v --cacert /etc/pki/CA/cacert.pem --key /home/jfclere/CERTS/clients/newkey.pem --cert /home/jfclere/CERTS/clients/newcert.pem https://localhost:8443/examples/ssl.jsp
+
+# Proxy as a client. the file cert_key.pem cert + key : note key no encrypted.
+SSLProxyMachineCertificateFile /home/jfclere/CERTS/proxies/cert_key.pem
+ProxyPass "/examples" "https://localhost:8443/examples"
+ProxyPassReverse "/examples" "https://localhost:8443/examples"
+
+Let's do a little more, use https in httpd too!!!
+curl -v http://localhost:8000/examples/ssl.jsp (of course LOL!!!)
+
+In httpd.conf
++++
+Listen 8888
+<VirtualHost _default_:8888>
+
+  # tell help to use https
+  SSLEngine On
+  SSLCertificateFile /home/jfclere/CERTS/localhost/newcert.pem
+  SSLCertificateKeyFile /home/jfclere/CERTS/localhost/newkey.txt.pem
+  SSLCACertificateFile "/etc/pki/CA/cacert.pem"
+
+  # export the ssl variables
+  SSLOptions +StdEnvVars +ExportCertData
+
+  # Use mod_headers to add them as headers.
+  RequestHeader set SSL_CLIENT_CERT "%{SSL_CLIENT_CERT}s"
+  RequestHeader set SSL_CIPHER "%{SSL_CIPHER}s"
+  RequestHeader set SSL_SESSION_ID "%{SSL_SESSION_ID}s"
+  RequestHeader set SSL_CIPHER_USEKEYSIZE "%{SSL_CIPHER_USEKEYSIZE}s"
+
+  # require a certificate. (requre because httpd can't know when the webapp requires it)
+  SSLVerifyClient require
+
+  # to debug (that can be helpfull or use the org.apache.catalina.filters.RequestDumperFilter.
+  #ProxyPass "/examples" "http://localhost:8080/examples"
+  #ProxyPassReverse "/examples" "http://localhost:8080/examples"
+
+</VirtualHost>
++++
+
+ssl valve: https://tomcat.apache.org/tomcat-9.0-doc/config/valve.html#SSL_Valve
+Add in server.xml
+<Valve className="org.apache.catalina.valves.SSLValve" />
+
+the headerdumpter filter in web.xml:
++++
+    <filter-name>requestdumper</filter-name>
+    <filter-class>
+        org.apache.catalina.filters.RequestDumperFilter
+    </filter-class>
+</filter>
+<filter-mapping>
+    <filter-name>requestdumper</filter-name>
+    <url-pattern>*</url-pattern>
+</filter-mapping>
++++
+
+What we see catalina.out:
++++
+7-Aug-2021 14:39:55.556 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3 START TIME        =27-Aug-2021 14:39:55
+27-Aug-2021 14:39:55.557 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3         requestURI=/examples/ssl.jsp
+27-Aug-2021 14:39:55.557 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3           authType=null
+27-Aug-2021 14:39:55.557 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3  characterEncoding=UTF-8
+27-Aug-2021 14:39:55.557 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3      contentLength=-1
+27-Aug-2021 14:39:55.557 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3        contentType=null
+27-Aug-2021 14:39:55.557 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3        contextPath=/examples
+27-Aug-2021 14:39:55.557 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3             header=host=localhost:8443
+27-Aug-2021 14:39:55.557 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3             header=user-agent=curl/7.76.1
+27-Aug-2021 14:39:55.558 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3             header=accept=*/*
+27-Aug-2021 14:39:55.558 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3             header=ssl_client_cert=-----BEGIN CERTIFICATE----- MIIEfzCCA2egAwIBAgIJALlId+vOUxv/MA0GCSqGSIb3DQEBCwUAMIGEMQswCQYD VQQGEwJDSDESMBAGA1UECAwJTmV1Y2hhdGVsMRAwDgYDVQQKDAdSZWQgSGF0MRkw FwYDVQQLDBBDQSBjZXJ0IDIwMjEwNTExMRIwEAYDVQQDDAlsb2NhbGhvc3QxIDAe BgkqhkiG9w0BCQEWEWpmY2xlcmVAZ21haWwuY29tMB4XDTIxMDgyNjE0MjkzOFoX DTIyMDgyNjE0MjkzOFowgZQxCzAJBgNVBAYTAkNIMRIwEAYDVQQIDAlOZXVjaGF0 ZWwxEjAQBgNVBAcMCU5ldWNoYXRlbDEQMA4GA1UECgwHUmVkIEhhdDEVMBMGA1UE CwwMY2xpZW50IEF1ZzI2MRIwEAYDVQQDDAlsb2NhbGhvc3QxIDAeBgkqhkiG9w0B CQEWEWpmY2xlcmVAZ21haWwuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIB CgKCAQEA0UvA7nTqMlvaoOnvfJ0CFme8hRdpr2Aqblp01kcGwnX6q3dhdQNAov45 ecVz/rH7XnFZr00fN4G8AYknPuRPptTtgrNtHlRuLBZxh8lXFtyqKehlBkNQd6OO j9ChwZpPeGvuEBV7rsR5Z/J3LIS3Iv+1kQzAwPncabmsbMsz1iSO2QctBmPaPRWa bmhPi7SZsOyNQU3jtVeJS9oVKe/0soO0qqtD0z4pCACEcKsSEuI58Lp5QUPdzYNf eorxYSDJbW0JFNJmgS+veWmrpRHOKZ96hfVAD4c8eQ5kGQwq0vLlvhgnM+zI1CEW brOAiOvwVMof376GiXsqN2jX+CcgEwIDAQABo4HhMIHeMAkGA1UdEwQCMAAwLAYJ YIZIAYb4QgENBB8WHU9wZW5TU0wgR2VuZXJhdGVkIENlcnRpZmljYXRlMB0GA1Ud DgQWBBSLaEDQrW9QZ6XfTpXLnmLSMIn1vTAfBgNVHSMEGDAWgBTbQhKQCAYUxLRf acDg4oJs+TWlODAyBggrBgEFBQcBAQQmMCQwIgYIKwYBBQUHMAGGFmh0dHA6Ly9s b2NhbGhvc3Q6MjU2MC8wLwYDVR0fBCgwJjAkoCKgIIYeaHR0cDovL2xvY2FsaG9z dDo4MDAwL215Y2EuY3JsMA0GCSqGSIb3DQEBCwUAA4IBAQApGP8dmJUyD8NbM9ZH DgLLhB5GtQ5MEjNmTGxTj4OGZND/H72sgZpqNhIVmfVmEbtst+xyPY2Ag1e3xFRq zKAqiMSHxTwrYvPgBwKGyUFil/lBLGTYMeRWnfnJkXr0O/yzuDAUWEk9Xjci/bbB 0tXiwfN25u38MJhO2ltnDiWBbib5BNOHxWuwSXV/iSzQeKvKVqVb7cgUsGfG4X9W arT7wCL/qoSDc+vX2oxzNn/nebfI6fmOFBsivg5VsVk6iNer9Mm2r4+Yb03G+42I NQ3DEfKOjaKu/7su51VAK/tC65lY8Pc69xc/NDbu8GLVnTT8egyRaCoLYAZ2TGua gpnO -----END CERTIFICATE-----
+27-Aug-2021 14:39:55.558 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3             header=ssl_cipher=TLS_AES_256_GCM_SHA384
+27-Aug-2021 14:39:55.558 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3             header=ssl_session_id=1df495d1add9be4f34797b86b6f0926c9761a17e29733bf7c5e1e7342aff663d
+27-Aug-2021 14:39:55.558 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3             header=ssl_cipher_usekeysize=256
+27-Aug-2021 14:39:55.558 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3             header=x-forwarded-for=::1
+27-Aug-2021 14:39:55.558 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3             header=x-forwarded-host=localhost:8888
+27-Aug-2021 14:39:55.558 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3             header=x-forwarded-server=fe80::faf4:935b:9dda:2adf
+27-Aug-2021 14:39:55.558 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3             header=connection=Keep-Alive
+27-Aug-2021 14:39:55.559 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3             locale=en_GB
+27-Aug-2021 14:39:55.559 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3             method=GET
+27-Aug-2021 14:39:55.559 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3           pathInfo=null
+27-Aug-2021 14:39:55.559 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3           protocol=HTTP/1.1
+27-Aug-2021 14:39:55.559 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3        queryString=null
+27-Aug-2021 14:39:55.559 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3         remoteAddr=0:0:0:0:0:0:0:1
+27-Aug-2021 14:39:55.559 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3         remoteHost=0:0:0:0:0:0:0:1
+27-Aug-2021 14:39:55.559 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3         remoteUser=null
+27-Aug-2021 14:39:55.559 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3 requestedSessionId=null
+27-Aug-2021 14:39:55.560 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3             scheme=https
+27-Aug-2021 14:39:55.560 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3         serverName=localhost
+27-Aug-2021 14:39:55.560 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3         serverPort=8443
+27-Aug-2021 14:39:55.560 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3        servletPath=/ssl.jsp
+27-Aug-2021 14:39:55.560 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3           isSecure=true
+27-Aug-2021 14:39:55.560 INFO [https-openssl-nio-8443-exec-3] org.apache.catalina.filters.RequestDumperFilter.doLog https-openssl-nio-8443-exec-3 ------------------=----------------------------------
++++
+
+Using a balancer.
+With 2 virtualhost in tomcat.
++++
+  ProxyPass "/examples" "balancer://mycluster/examples"
+  ProxyPassReverse "/examples" "balancer://mycluster/examples"
+  <Proxy balancer://mycluster>
+    BalancerMember https://server1:8443
+    BalancerMember https://server2:8443
+  </Proxy>
++++
+
+What is new in the balancer (recent 2.4.x improvements):
+mapping=servlet (prevents mapping miss configurations like)
+ProxyPass "/examples" http://localhost:8080/examples
+and curl -v "http://localhost:8000/examples/..;/manager/html" like
+curl -v "http://localhost:8080/examples/../manager/html"
+
+balancer-manager (allows a lot more... like adding a worker... also programmatically.
