@@ -278,6 +278,11 @@ Works well....
 --auto-open-devtools-for-tabs (to get the tab with the devtools ;-)
 /opt/google/chrome/chrome --enable-quic  --quic-version=h3-29 --auto-open-devtools-for-tabs https://jfclere.myddns.me:4433/
 
+With firefox it more tricky: https://developer.mozilla.org/en-US/docs/Tools/Settings
+set devtools.chrome.enabled to true
+go to the Browser console and clean:
+Services.obs.notifyObservers(null, "network:reset-http3-excluded-list");
+
 ma=3600... 1 hour really!!! won't be 60 enough?
 
 Note on h2 push:

@@ -24,6 +24,7 @@ Client Authentication, tomcat 8443: the proxy acts as a client (browser)
               </SSLHostConfig>
 +++
 Note I NEEED "NO_OCSP_CHECK=true" because my client certificates are generated like that.
+Note to user the load balancer use <SSLHostConfig hostName="server.../>
 +++
    <Connector port="8443" protocol="org.apache.coyote.http11.Http11NioProtocol"
                maxThreads="150" SSLEnabled="true" >
