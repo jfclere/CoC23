@@ -52,22 +52,22 @@ trap "quit" INT TERM EXIT
 # NOHTTPD fi
 
 # Test nio openssl
-REPORT_FILE=results_coyote_apr_$HTTPSCHEME
-"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 $HTTPSCHEME://${HOST}:8002/ true >/dev/null
-sleep ${SLEEP_TIME}
-"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} $HTTPSCHEME://${HOST}:8002/ true | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
+# tomcat REPORT_FILE=results_coyote_apr_$HTTPSCHEME
+# tomcat "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 $HTTPSCHEME://${HOST}:8002/ true >/dev/null
+# tomcat sleep ${SLEEP_TIME}
+# tomcat "${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} $HTTPSCHEME://${HOST}:8002/ true | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
 
 # Test nio openssl
-REPORT_FILE=results_coyote_nio_openssl$HTTPSCHEME
-"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 $HTTPSCHEME://${HOST}:8003/ true >/dev/null
-sleep ${SLEEP_TIME}
-"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} $HTTPSCHEME://${HOST}:8003/ true | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
+# tomcat REPORT_FILE=results_coyote_nio_openssl$HTTPSCHEME
+# tomcat "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 $HTTPSCHEME://${HOST}:8003/ true >/dev/null
+# tomcat sleep ${SLEEP_TIME}
+# tomcat "${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} $HTTPSCHEME://${HOST}:8003/ true | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
 
 # Test nio jsse
-REPORT_FILE=results_coyote_nio_jsse$HTTPSCHEME
-"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 $HTTPSCHEME://${HOST}:8004/ true >/dev/null
-sleep ${SLEEP_TIME}
-"${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} $HTTPSCHEME://${HOST}:8004/ true | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
+# tomcat REPORT_FILE=results_coyote_nio_jsse$HTTPSCHEME
+# tomcat "${SCRIPT_DIR}/runfiletests.sh" 1 1 0 $HTTPSCHEME://${HOST}:8004/ true >/dev/null
+# tomcat sleep ${SLEEP_TIME}
+# tomcat "${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} $HTTPSCHEME://${HOST}:8004/ true | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
 
 # STOP the tests here for the moment.
 quit
