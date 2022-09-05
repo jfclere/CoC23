@@ -35,7 +35,10 @@ trap "quit" INT TERM EXIT
 
 # Proxy AJP SSL tests.
 REPORT_FILE=results_proxy_ajp
-"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 https://${HOST}:${HTTPDSPORT}/tcaj/ ${USE_H2} >/dev/null
+echo "Pretest warm up..."
+"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 https://${HOST}:${HTTPDSPORT}/tcaj/ ${USE_H2}
+#"${SCRIPT_DIR}/runfiletests.sh" 1 1 0 https://${HOST}:${HTTPDSPORT}/tcaj/ ${USE_H2} >/dev/null
+echo "Waiting ${SLEEP_TIME}..."
 sleep ${SLEEP_TIME}
 "${SCRIPT_DIR}/runfiletests.sh" ${REQUESTS} ${CONCURRENCY} ${TIME_LIMIT} https://${HOST}:${HTTPDSPORT}/tcaj/ ${USE_H2} | tee "${REPORT_DIR}/${REPORT_FILE}.txt" 2>&1
 

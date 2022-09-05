@@ -16,6 +16,7 @@ HOST=192.168.1.121
 HOSTSLIST="localhost"
 
 AB=/home/jfclere/httpd-2.4.10/support/ab
+AB=/usr/bin/ab
 H2=/nfs/jfclere/NGHTTP2/bin/h2load
 H2=/usr/bin/h2load
 #H2_OPTS="-H 'Host: localhost' --ciphers='DHE-RSA-AES128-GCM-SHA256'"
@@ -64,6 +65,7 @@ fi
 if $USE_H2; then
   echo "Testing H2"
 else
+  echo "Testing HTTP/1.1"
   H2_OPTS="--h1 $H2_OPTS"
 fi
 
@@ -82,6 +84,7 @@ for f in ${FILES} ; do
   #while [ ${started} -lt ${CONCURRENCY} ]
   for remote in `echo "$HOSTSLIST"`
   do
+    echo $remote
     #for box in 1 2 we need 2 ab but only one h2_load
     for box in 1
     do
@@ -92,15 +95,17 @@ for f in ${FILES} ; do
         echo Fetching ${BASE_URL}${f} -c ${concur} -n ${REQUESTS} on $remote > $$.ab.${started}
         ssh $remote ${H2} ${H2_OPTS} -c ${concur} -n ${REQUESTS} ${BASE_URL}${f} >> $$.ab.${started} &
       else
-        #echo ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f}
-        #echo Fetching ${BASE_URL}${f} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} > $$.ab.${started}
-        #ssh $remote ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f} >> $$.ab.${started} &
-        echo ${H2} ${H2_OPTS} -c ${concur} -n ${REQUESTS} ${BASE_URL}${f}
-        echo Fetching ${BASE_URL}${f} -c ${concur} -n ${REQUESTS} on $remote > $$.ab.${started}
-        ssh $remote ${H2} ${H2_OPTS} -c ${concur} -n ${REQUESTS} ${BASE_URL}${f} >> $$.ab.${started} &
+        echo ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f}
+        echo Fetching ${BASE_URL}${f} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} > $$.ab.${started}
+        ssh $remote ${AB} ${AB_OPTS} ${AB_KEEPALIVE} -c ${concur} ${TIME_LIMIT} -n ${REQUESTS} ${BASE_URL}${f} >> $$.ab.${started} &
+        #echo ${H2} ${H2_OPTS} -c ${concur} -n ${REQUESTS} ${BASE_URL}${f}
+        #echo Fetching ${BASE_URL}${f} -c ${concur} -n ${REQUESTS} on $remote > $$.ab.${started}
+        #ssh $remote ${H2} ${H2_OPTS} -c ${concur} -n ${REQUESTS} ${BASE_URL}${f} >> $$.ab.${started} &
       fi
     done
   done
+
+  echo "Waiting for AB or H2LOAD"
 
   # Wait for ab
   while true
@@ -109,19 +114,19 @@ for f in ${FILES} ; do
     finished=true
     for file in `ls $$.ab.*`
     do
-      #if $USE_H2; then
+      if $USE_H2; then
         grep "finished in " $file 2>&1 > /dev/null
         if [ $? -ne 0 ]; then
            finished=false
            break
         fi
-      #else
-      #  grep "Transfer rate:" $file 2>&1 > /dev/null
-      #  if [ $? -ne 0 ]; then
-      #     finished=false
-      #     break
-      #  fi
-      #fi
+      else
+        grep "Transfer rate:" $file 2>&1 > /dev/null
+        if [ $? -ne 0 ]; then
+           finished=false
+           break
+        fi
+      fi
     done
     if $finished; then
       stop_vmstat
