@@ -1,3 +1,7 @@
+# H2 demo
+
+look in https://github.com/jfclere/h2_demos
+
 # ApacheCon scripts
 
 ## H2/HTTP/1.1 demo and benchmarks,look in scripts and conf:
