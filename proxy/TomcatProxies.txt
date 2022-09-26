@@ -74,6 +74,13 @@ Listen 8888
   # to debug (that can be helpfull or use the org.apache.catalina.filters.RequestDumperFilter.
   #ProxyPass "/examples" "http://localhost:8080/examples"
   #ProxyPassReverse "/examples" "http://localhost:8080/examples"
+  
+  # tell where the CA and cert/key are to connect to tomcat
+  SSLProxyEngine on
+  SSLProxyCACertificateFile  "/etc/pki/CA/cacert.pem"
+  SSLProxyMachineCertificateFile "/home/jfclere/CERTS/proxies/cert_key.pem"
+  ProxyPass "/examples" "https://localhost:8443/examples"
+  ProxyPassReverse "/examples" "http://localhost:8443/examples"
 
 </VirtualHost>
 +++
