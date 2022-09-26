@@ -6,14 +6,14 @@ AJP on Tomcat port 8080 from H2 httpd 8895  demo-1.0 using mod_jk
 
 ssl:
 simple, tomcat 7443.
-curl -v --cacert /etc/pki/CA/cacert.pem https://localhost:7443/
+curl -v --cacert /etc/pki/CA/cacert.pem https://localhost:7443/examples/ssl.jsp
 SSLProxyEngine on
 SSLProxyCACertificateFile  "/etc/pki/CA/cacert.pem"
 
 ProxyPass "/examples" "https://localhost:7443/examples"
 ProxyPassReverse "/examples" "https://localhost:7443/examples"
 
-curl -v http://localhost:8000/examples/
+curl -v http://localhost:8007/examples/ssl.jsp
 
 Client Authentication, tomcat 8443: the proxy acts as a client (browser)
 +++
