@@ -1,0 +1,16 @@
+   <Connector port="7443" protocol="org.apache.coyote.http11.Http11NioProtocol"
+               maxThreads="150" SSLEnabled="true">
+        <SSLHostConfig>
+            <Certificate certificateFile="/home/jfclere/CERTS/SERVER/newcert.pem"
+                         certificateKeyFile="/home/jfclere/CERTS/SERVER/newkey.txt.pem" />
+        </SSLHostConfig>
+    </Connector>
+
+   <Connector port="8443" protocol="org.apache.coyote.http11.Http11NioProtocol"
+               maxThreads="150" SSLEnabled="true">
+        <UpgradeProtocol className="org.apache.coyote.http2.Http2Protocol" />
+        <SSLHostConfig caCertificateFile="/etc/pki/CA/cacert.pem" certificateVerification="required">
+            <Certificate certificateFile="/home/jfclere/CERTS/SERVER/newcert.pem"
+                         certificateKeyFile="/home/jfclere/CERTS/SERVER/newkey.txt.pem" />
+        </SSLHostConfig>
+    </Connector>
