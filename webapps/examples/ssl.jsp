@@ -3,10 +3,10 @@
 <head><title>SSL JSP from <%=request.getServerName() %> </title></head>
 <body>
 <%
-  out.println ("Scheme: " + request.getScheme());
-  out.println ("Protocol: " + request.getProtocol());
+out.println ("Scheme: " + request.getScheme());
+out.println ("Protocol: " + request.getProtocol());
 %>
-<% X509Certificate certChain[] = (X509Certificate[]) request.getAttribute("javax.servlet.request.X509Certificate");
+<% X509Certificate certChain[] = (X509Certificate[]) request.getAttribute("jakarta.servlet.request.X509Certificate");
   if (certChain != null) {
     /* for debug ...
     for (int i = 0; i < certChain.length; i++) {
