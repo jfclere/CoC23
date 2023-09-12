@@ -4,7 +4,7 @@ The "old" HTTP/2 protocol and the corresponding TLS/SSL are common to Traffic Se
 The presentation will shortly explain the new protocol and the ALPN extensions and look to the state of the those in our 3 servers and show the common parts and the specifics of each servers.
 A demo configuration of each server will be run
 
-TS we have all: (/home/jfclere/H3/ATS).
+TS is in : (/home/jfclere/TS).
 ATS: (logs in ./var/log/trafficserver)
 bin/trafficserver start
 
@@ -23,7 +23,7 @@ So on port 4433
 map / http://127.0.0.1:8080/
 
 
-CURL: a HTTP/3 curl (in /home/jfclere/H3 too!!!)
+CURL: a HTTP/3 curl (in /home/jfclere/CURL/CURL)
 export LD_LIBRARY_PATH=/home/jfclere/H3/OPENSSL/lib
 CURL/bin/curl --http3 https://quic.tech:8443
 
