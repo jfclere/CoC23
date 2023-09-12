@@ -283,6 +283,9 @@ in my certificate: openssl x509 -in /home/jfclere/H3/certs/pubcert.pem -text
 
 Works well.... (well now not!)
 google-chrome --enable-quic --origin-to-force-quic-on=localhost:4433 https://localhost:4433/
+
+but now: firefox works with the alt-svc: h3=":4433"; ma=60, h3-29=":4433"; ma=60 
+
 /opt/google/chrome/chrome --enable-quic  --quic-version=h3-29 --origin-to-force-quic-on=jfclere.myddns.me:4433 url
 /opt/google/chrome/chrome --enable-quic  --quic-version=h3-29 --origin-to-force-quic-on=jfclere.myddns.me:4433 https://jfclere.myddns.me:4433/index.jsp
 /opt/google/chrome/chrome --enable-quic  --quic-version=h3-29 https://jfclere.myddns.me:4433/ (probably the OK one!!!
