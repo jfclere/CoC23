@@ -4,6 +4,12 @@ The "old" HTTP/2 protocol and the corresponding TLS/SSL are common to Traffic Se
 The presentation will shortly explain the new protocol and the ALPN extensions and look to the state of the those in our 3 servers and show the common parts and the specifics of each servers.
 A demo configuration of each server will be run
 
+on boringssl:
+cmake -B build
+make -C build
+make -C build install
+Note the install is in boringssl ;-)
+
 TS is in : (/home/jfclere/TS).
 ATS: (logs in ./var/log/trafficserver)
 bin/trafficserver start
