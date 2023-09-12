@@ -5,10 +5,14 @@ The presentation will shortly explain the new protocol and the ALPN extensions a
 A demo configuration of each server will be run
 
 on boringssl:
+```bash
 cmake -B build -D BUILD_SHARED_LIBS=Y
 make -C build
 make -C build install
+```
 Note the install is in boringssl ;-)
+the version that works with trafficserver (10-Dev) is "f1c75347d update main-with-bazel from master branch" of course install is not existing there!!!
+use boringssl/src and create boringssl/src/lib and copy the libraries from boringssl/build to boringssl/src/lib
 
 TS is in : (/home/jfclere/TS).
 ATS: (logs in ./var/log/trafficserver)
