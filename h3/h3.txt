@@ -5,7 +5,7 @@ The presentation will shortly explain the new protocol and the ALPN extensions a
 A demo configuration of each server will be run
 
 on boringssl:
-cmake -B build
+cmake -B build -D BUILD_SHARED_LIBS=Y
 make -C build
 make -C build install
 Note the install is in boringssl ;-)
