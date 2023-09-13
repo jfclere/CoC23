@@ -21,11 +21,17 @@ bin/trafficserver start
 ssl_multicert.config (certificates stuff).
 dest_ip=* ssl_cert_name=/home/jfclere/CERTS/SERVER/newcert.pem ssl_key_name=/home/jfclere/CERTS/SERVER/newkey.txt.pem
 
-# JFC ADDS in records.config
+# JFC ADDS in records.config (now records.yaml)
+```
 CONFIG proxy.config.udp.threads INT 1
 CONFIG proxy.config.http.server_ports STRING 4433:quic
 CONFIG proxy.config.diags.debug.enabled INT 1
 CONFIG proxy.config.diags.debug.tags STRING quic
+```
+in records.yaml use
+```
+server_ports: 4433 4433:quic
+```
 
 So on port 4433
 
